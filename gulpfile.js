@@ -16,7 +16,9 @@ const process = (inputs) => {
   helpers.writeFile(
     `${config.outputFolder}/query-result-${helpers.formatTimeStamp()}.json`,
     JSON.stringify({
-      query: `Query key string of '${inputs.keyQuery}' ${inputs.value === '*' ? "to match all values" : "to match the '"+inputs.value+"' value"}`,
+      query: inputs.keyQuery,
+      matchValue: inputs.value,
+      source: config.sourceFolder,
       results: result
     }, null, 2)
   );

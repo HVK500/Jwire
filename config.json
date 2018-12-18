@@ -1,6 +1,5 @@
 {
-  "sourceFolder": "D:/Projects/TitanConfig/src",
-  "searchCriteria": "**/!(index|settings).json",
-  "outputFolder": "./results",
-  "archonOutputMode": false
+  "sourceFolder": "",
+  "searchCriteria": "**/*.json",
+  "outputFolder": "./results"
 }

@@ -12,6 +12,7 @@
     "gulp": "^3.9.1",
     "gulp-prompt": "^1.2.0",
     "jsonata": "^1.5.4",
+    "jsonpath": "^1.0.0",
     "mkdirp": "^0.5.1"
   }
 }

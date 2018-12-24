@@ -1,5 +1,5 @@
 const glob = require('glob');
-const jsonata = require('jsonata');
+const jsonpath = require('jsonpath');
 const helpers = require('./helpers');
 
 const tryParseValue = (value) => {
@@ -10,7 +10,7 @@ const tryParseValue = (value) => {
   }
 };
 
-const getSubjectFilePaths = (sourceFolder, search) => {
+const getFilePaths = (sourceFolder, search) => {
   return glob.sync(search, {
     cwd: sourceFolder,
     nosort: true,
@@ -18,20 +18,27 @@ const getSubjectFilePaths = (sourceFolder, search) => {
   });
 };
 
-const processSubjectFiles = (sourceFolder, paths, inputs) => {
-  const expression = jsonata(inputs.keyQuery);
+const processFiles = (sourceFolder, paths, inputs) => {
   const result = { _collective: null };
 
   paths.forEach((path) => {
-    const foundValue = expression.evaluate(helpers.readFile(path, true));
+    let foundValue = jsonpath.query(
+        helpers.readFile(path, true),
+        inputs.keyQuery
+      );
+
+    if (foundValue.length > 0) {
+      foundValue = foundValue[0];
+    }
 
     if (
         // No value is found
-        foundValue == null ||
+        foundValue.length === 0 ||
         // If an expected value is given and is not equal to the found value.
         (inputs.value !== '*' && tryParseValue(inputs.value) !== foundValue)
       ) return;
 
+    result._collective.without
     result[path.replace(sourceFolder, '~').replace('.json', '')] = foundValue;
   });
 
@@ -39,9 +46,9 @@ const processSubjectFiles = (sourceFolder, paths, inputs) => {
 };
 
 module.exports = (sourceFolder, search, inputs) => {
-  return processSubjectFiles(
+  return processFiles(
     sourceFolder,
-    getSubjectFilePaths(sourceFolder, search),
+    getFilePaths(sourceFolder, search),
     inputs
   );
 }

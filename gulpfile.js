@@ -51,7 +51,7 @@ gulp.task('query', () => {
 
 gulp.task('default', () => {
   process({
-    keyQuery: '*.*.deviceAndOsRestricted.*.deviceUA',
+    keyQuery: 'features.autoPlay.enabled', //'features.**.deviceAndOsRestricted.*.browserAndOS.**.browsers',
     value: '*'
   });
 });

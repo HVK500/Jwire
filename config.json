@@ -1,5 +1,10 @@
 {
-  "sourceFolder": "",
-  "searchCriteria": "**/*.json",
-  "outputFolder": "./results"
+  "input": {
+    "sourceFolder": "",
+    "searchCriteria": ""
+  },
+  "output": {
+    "resultFolder": ""
+  },
+  "plugins": []
 }

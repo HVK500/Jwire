@@ -1292,6 +1292,11 @@ lodash.templatesettings@^4.0.0:
   dependencies:
     lodash._reinterpolate "~3.0.0"
 
+lodash@^3.10.1:
+  version "3.10.1"
+  resolved "http://proget/npm/derivconpm/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
+  integrity sha1-W/Rejkm6QYnhfUgnid/RW9FAt7Y=
+
 lodash@^4.3.0:
   version "4.17.11"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
@@ -1301,6 +1306,13 @@ lodash@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-1.0.2.tgz#8f57560c83b59fc270bd3d561b690043430e2551"
   integrity sha1-j1dWDIO1n8JwvT1WG2kAQ0MOJVE=
+
+log-wrapper@^0.1.1:
+  version "0.1.2"
+  resolved "http://proget/npm/derivconpm/log-wrapper/-/log-wrapper-0.1.2.tgz#59db68fbe07be138fc5b53005258ff43c8c94fab"
+  integrity sha1-Wdto++B74Tj8W1MAUlj/Q8jJT6s=
+  dependencies:
+    lodash "^3.10.1"
 
 lru-cache@2:
   version "2.7.3"
@@ -1641,6 +1653,14 @@ pinkie@^2.0.0:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz#72556b80cfa0d48a974e80e77248e80ed4f7f870"
   integrity sha1-clVrgM+g1IqXToDnckjoDtT3+HA=
+
+plugin-system@^0.2.1:
+  version "0.2.1"
+  resolved "http://proget/npm/derivconpm/plugin-system/-/plugin-system-0.2.1.tgz#f8a3413a7347bbaea7cfc803a473f68855e93cdc"
+  integrity sha1-+KNBOnNHu66nz8gDpHP2iFXpPNw=
+  dependencies:
+    lodash "^3.10.1"
+    log-wrapper "^0.1.1"
 
 posix-character-classes@^0.1.0:
   version "0.1.1"

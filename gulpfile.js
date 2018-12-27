@@ -7,18 +7,18 @@ const config = helpers.getConfig();
 
 const process = (inputs) => {
   const result = query(
-    config.sourceFolder,
-    config.searchCriteria,
+    config.input.sourceFolder,
+    config.input.searchCriteria,
     inputs
   );
 
   // Output in file
   helpers.writeFile(
-    `${config.outputFolder}/query-result-${helpers.formatTimeStamp()}.json`,
+    `${config.output.resultFolder}/query-result-${helpers.formatTimeStamp()}.json`,
     {
       query: inputs.keyQuery,
       matchValue: inputs.value,
-      source: config.sourceFolder,
+      source: config.input.sourceFolder,
       results: result.queryResult,
       _metadata: result.metadata
     },

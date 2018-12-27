@@ -45,15 +45,16 @@ const metadataProcessor = (totalFiles) => {
   };
 };
 
-const processFiles = (sourceFolder, paths, inputs) => {
+const processFiles = (sourceFolder, paths, inputs, plugins) => {
   const parsedValue = helpers.tryParseValue(inputs.value);
   const metadata = metadataProcessor(paths.length);
   const queryResult = valueProcessor();
 
   paths.forEach((path) => {
     const queryFilePath = path.replace(sourceFolder, '~').replace('.json', '');
+    const fileContent = helpers.readFile(path, true);
     const queryNodes = jsonpath.nodes(
-      helpers.readFile(path, true),
+      fileContent,
       inputs.keyQuery
     );
 
@@ -70,12 +71,12 @@ const processFiles = (sourceFolder, paths, inputs) => {
         return;
       }
 
-      queryProcessedResult.add(item.path.join('.').replace('$.', '').replace(/\d+/g, match => `[${match}]`), item.value);
+      queryProcessedResult.add(item.path.join('.').replace('$.', '').replace(/\d+/g, match => `[${match}]`), plugins.formatter.onAddNode(item.value));
       metadata.bumpMatch();
     });
 
     if (!queryProcessedResult.hasGeneratedResult()) return;
-    queryResult.add(queryFilePath, queryProcessedResult.output());
+    queryResult.add(queryFilePath, plugins.formatter.onOutput(queryProcessedResult.output(), fileContent));
   });
 
   return {
@@ -84,10 +85,11 @@ const processFiles = (sourceFolder, paths, inputs) => {
   };
 };
 
-module.exports = (sourceFolder, search, inputs) => {
+module.exports = (sourceFolder, search, inputs, plugins) => {
   return processFiles(
     sourceFolder,
     helpers.getFilePaths(sourceFolder, search),
-    inputs
+    inputs,
+    plugins
   );
 }

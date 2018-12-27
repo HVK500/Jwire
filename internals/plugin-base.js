@@ -10,7 +10,7 @@ module.exports = (id, type, callbacks) => {
   };
 
   // Callbacks is a Map
-  if (callbacks.size !== 0) {
+  if (!!callbacks && callbacks.size !== 0) {
     callbacks.forEach((value, key) => {
       if (!result[key]) return;
       result[key] = value;

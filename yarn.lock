@@ -1113,9 +1113,9 @@ jison@0.4.13:
     nomnom "1.5.2"
 
 jsonata@^1.5.4:
-  version "1.5.4"
-  resolved "https://registry.yarnpkg.com/jsonata/-/jsonata-1.5.4.tgz#025f4843c84d0eca4b9b3e4c7918131ee4e7bcde"
-  integrity sha512-F/p92UWYUn+kD3SE898jjlz1mkBzjtok9ZTtWT6+axS4Z2Wtc8p/md6xHkyCGWPdIEJBTSw0mlvKE+s+fAVSjg==
+  version "1.6.3"
+  resolved "https://registry.yarnpkg.com/jsonata/-/jsonata-1.6.3.tgz#b2b56ceadb369f5e1c69612124485e1b4df85a23"
+  integrity sha512-AX3q/h/KFjrHPKJVS+2Rh80sOgAK4CRBg8hRKFLsED6v/zJ7DUVQCFsvpF97Hao2wd2yCPwSR46b2B+11ZtDQQ==
 
 jsonpath@^1.0.0:
   version "1.0.0"
@@ -1294,7 +1294,7 @@ lodash.templatesettings@^4.0.0:
 
 lodash@^3.10.1:
   version "3.10.1"
-  resolved "http://proget/npm/derivconpm/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
   integrity sha1-W/Rejkm6QYnhfUgnid/RW9FAt7Y=
 
 lodash@^4.3.0:
@@ -1309,7 +1309,7 @@ lodash@~1.0.1:
 
 log-wrapper@^0.1.1:
   version "0.1.2"
-  resolved "http://proget/npm/derivconpm/log-wrapper/-/log-wrapper-0.1.2.tgz#59db68fbe07be138fc5b53005258ff43c8c94fab"
+  resolved "https://registry.yarnpkg.com/log-wrapper/-/log-wrapper-0.1.2.tgz#59db68fbe07be138fc5b53005258ff43c8c94fab"
   integrity sha1-Wdto++B74Tj8W1MAUlj/Q8jJT6s=
   dependencies:
     lodash "^3.10.1"
@@ -1608,7 +1608,7 @@ path-is-inside@^1.0.1:
   resolved "https://registry.yarnpkg.com/path-is-inside/-/path-is-inside-1.0.2.tgz#365417dede44430d1c11af61027facf074bdfc53"
   integrity sha1-NlQX3t5EQw0cEa9hAn+s8HS9/FM=
 
-path-parse@^1.0.5:
+path-parse@^1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.6.tgz#d62dbb5679405d72c4737ec58600e9ddcf06d24c"
   integrity sha512-GSmOT2EbHrINBf9SR7CDELwlJ8AENk3Qn7OikK4nFYAu3Ote2+JYNVvkpAEQm3/TLNEJFD/xZJjzyxg3KBWOzw==
@@ -1656,7 +1656,7 @@ pinkie@^2.0.0:
 
 plugin-system@^0.2.1:
   version "0.2.1"
-  resolved "http://proget/npm/derivconpm/plugin-system/-/plugin-system-0.2.1.tgz#f8a3413a7347bbaea7cfc803a473f68855e93cdc"
+  resolved "https://registry.yarnpkg.com/plugin-system/-/plugin-system-0.2.1.tgz#f8a3413a7347bbaea7cfc803a473f68855e93cdc"
   integrity sha1-+KNBOnNHu66nz8gDpHP2iFXpPNw=
   dependencies:
     lodash "^3.10.1"
@@ -1759,11 +1759,11 @@ resolve-url@^0.2.1:
   integrity sha1-LGN/53yJOv0qZj/iGqkIAGjiBSo=
 
 resolve@^1.1.6, resolve@^1.1.7:
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.8.1.tgz#82f1ec19a423ac1fbd080b0bab06ba36e84a7a26"
-  integrity sha512-AicPrAC7Qu1JxPCZ9ZgCZlY35QgFnNqc+0LtbRNxnVw4TXvjQ72wnuL9JQcEBgXkI9JM8MsT9kaQoHcpCRJOYA==
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.9.0.tgz#a14c6fdfa8f92a7df1d996cb7105fa744658ea06"
+  integrity sha512-TZNye00tI67lwYvzxCxHGjwTNlUV70io54/Ed4j6PscB8xVfuBJpRenI/o6dVk0cY0PYTY27AgCoGGxRnYuItQ==
   dependencies:
-    path-parse "^1.0.5"
+    path-parse "^1.0.6"
 
 restore-cursor@^2.0.0:
   version "2.0.0"

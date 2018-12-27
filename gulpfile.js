@@ -57,13 +57,13 @@ gulp.task('query', () => {
 
 gulp.task('default', () => {
   process({
-    keyQuery: '$..enabled',
-    value: 'true'
+    keyQuery: '',
+    value: ''
   });
 });
 
 gulp.task('clean', () => {
   del([
-    './results'
+    config.output.resultFolder
   ]);
 });

@@ -17,17 +17,21 @@ const valueProcessor = () => {
   };
 };
 
-const metadataProcessor = () => {
+const metadataProcessor = (totalFiles) => {
   const result = {
     matches: 0,
     noMatches: 0,
-    totalFiles: 0,
-    filesWithNoValue: []
+    totalFiles: totalFiles,
+    filesWithNoValue: {
+      count: 0,
+      fileList: []
+    }
   };
 
   return {
     addFileWithNoValue: (filePath) => {
-      result.filesWithNoValue.push(filePath);
+      result.filesWithNoValue.count++;
+      result.filesWithNoValue.fileList.push(filePath);
     },
     bumpMatch: () => {
       result.matches++;
@@ -36,7 +40,6 @@ const metadataProcessor = () => {
       result.noMatches++;
     },
     output: () => {
-      result.totalFiles = result.matches + result.noMatches;
       return result;
     }
   };
@@ -44,7 +47,7 @@ const metadataProcessor = () => {
 
 const processFiles = (sourceFolder, paths, inputs) => {
   const parsedValue = helpers.tryParseValue(inputs.value);
-  const metadata = metadataProcessor();
+  const metadata = metadataProcessor(paths.length);
   const queryResult = valueProcessor();
 
   paths.forEach((path) => {

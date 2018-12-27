@@ -19,7 +19,8 @@ const process = (inputs) => {
       query: inputs.keyQuery,
       matchValue: inputs.value,
       source: config.sourceFolder,
-      results: result
+      metadata: result.metadata,
+      results: result.queryResult
     },
     true
   );
@@ -52,8 +53,8 @@ gulp.task('query', () => {
 
 gulp.task('default', () => {
   process({
-    keyQuery: '',
-    value: ''
+    keyQuery: '$..age',
+    value: '*'
   });
 });
 

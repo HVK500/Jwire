@@ -1,72 +1,90 @@
-const glob = require('glob');
 const jsonpath = require('jsonpath'); // https://goessner.net/articles/JsonPath/index.html#e2
 const helpers = require('./helpers');
 
-const tryParseValue = (value) => {
-  try {
-    return JSON.parse(value); // object | array
-  } catch (err) {
-    return value; // string
-  }
+const valueProcessor = () => {
+  let hasLeastOneValueAdded = false;
+  const result = {};
+
+  return {
+    add: (key, value) => {
+      hasLeastOneValueAdded = true;
+      result[key] = value;
+    },
+    hasGeneratedResult: () => hasLeastOneValueAdded,
+    output: () => {
+      return result;
+    }
+  };
 };
 
-const getFilePaths = (sourceFolder, search) => {
-  return glob.sync(search, {
-    cwd: sourceFolder,
-    nosort: true,
-    absolute: true
-  });
+const metadataProcessor = () => {
+  const result = {
+    matches: 0,
+    noMatches: 0,
+    totalFiles: 0,
+    filesWithNoValue: []
+  };
+
+  return {
+    addFileWithNoValue: (filePath) => {
+      result.filesWithNoValue.push(filePath);
+    },
+    bumpMatch: () => {
+      result.matches++;
+    },
+    bumpNoMatch: () => {
+      result.noMatches++;
+    },
+    output: () => {
+      result.totalFiles = result.matches + result.noMatches;
+      return result;
+    }
+  };
 };
 
 const processFiles = (sourceFolder, paths, inputs) => {
-  const parsedValue = tryParseValue(inputs.value);
-  const result = {
-    _collective: {
-      total: 0,
-      matchs: 0,
-      noMatchs: 0,
-      fileWithNoValue: []
-    }
-  };
+  const parsedValue = helpers.tryParseValue(inputs.value);
+  const metadata = metadataProcessor();
+  const queryResult = valueProcessor();
 
   paths.forEach((path) => {
     const queryFilePath = path.replace(sourceFolder, '~').replace('.json', '');
-    const queryResult = jsonpath.nodes(
+    const queryNodes = jsonpath.nodes(
       helpers.readFile(path, true),
       inputs.keyQuery
     );
 
-    if (queryResult.length === 0) {
-      result._collective.fileWithNoValue.push(queryFilePath);
+    // No result found in current file
+    if (queryNodes.length === 0) {
+      metadata.addFileWithNoValue(queryFilePath);
       return;
     }
 
-    let generatedResult = false;
-    const queryProcessedResult = {};
-    queryResult.forEach((item) => {
+    const queryProcessedResult = valueProcessor();
+    queryNodes.forEach((item) => {
       if (inputs.value !== '*' && ((!Array.isArray(item.value) && parsedValue !== item.value) || (Array.isArray(item.value) && !Array.isArray(parsedValue) && item.value.findIndex(value => value === inputs.value) === -1))) {
-        result._collective.noMatchs++;
+        metadata.bumpNoMatch();
         return;
       }
 
-      queryProcessedResult[item.path.join('.').replace('$.', '').replace(/\d+/g, match => `[${match}]`)] = item.value;
-      generatedResult = true;
-      result._collective.matchs++;
+      queryProcessedResult.add(item.path.join('.').replace('$.', '').replace(/\d+/g, match => `[${match}]`), item.value);
+      metadata.bumpMatch();
     });
 
-    if (!generatedResult) return;
-    result[queryFilePath] = queryProcessedResult;
+    if (!queryProcessedResult.hasGeneratedResult()) return;
+    queryResult.add(queryFilePath, queryProcessedResult.output());
   });
 
-  result._collective.total = result._collective.matchs + result._collective.noMatchs;
-
-  return result;
+  return {
+    metadata: metadata.output(),
+    queryResult: queryResult.output()
+  };
 };
 
 module.exports = (sourceFolder, search, inputs) => {
   return processFiles(
     sourceFolder,
-    getFilePaths(sourceFolder, search),
+    helpers.getFilePaths(sourceFolder, search),
     inputs
   );
 }

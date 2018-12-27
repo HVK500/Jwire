@@ -1,47 +1,90 @@
-const glob = require('glob');
-const jsonata = require('jsonata');
+const jsonpath = require('jsonpath'); // https://goessner.net/articles/JsonPath/index.html#e2
 const helpers = require('./helpers');
 
-const tryParseValue = (value) => {
-  try {
-    return JSON.parse(value); // object
-  } catch (err) {
-    return value; // string
-  }
+const valueProcessor = () => {
+  let hasLeastOneValueAdded = false;
+  const result = {};
+
+  return {
+    add: (key, value) => {
+      hasLeastOneValueAdded = true;
+      result[key] = value;
+    },
+    hasGeneratedResult: () => hasLeastOneValueAdded,
+    output: () => {
+      return result;
+    }
+  };
 };
 
-const getSubjectFilePaths = (sourceFolder, search) => {
-  return glob.sync(search, {
-    cwd: sourceFolder,
-    nosort: true,
-    absolute: true
-  });
+const metadataProcessor = () => {
+  const result = {
+    matches: 0,
+    noMatches: 0,
+    totalFiles: 0,
+    filesWithNoValue: []
+  };
+
+  return {
+    addFileWithNoValue: (filePath) => {
+      result.filesWithNoValue.push(filePath);
+    },
+    bumpMatch: () => {
+      result.matches++;
+    },
+    bumpNoMatch: () => {
+      result.noMatches++;
+    },
+    output: () => {
+      result.totalFiles = result.matches + result.noMatches;
+      return result;
+    }
+  };
 };
 
-const processSubjectFiles = (sourceFolder, paths, inputs) => {
-  const expression = jsonata(inputs.keyQuery);
-  const result = { _collective: null };
+const processFiles = (sourceFolder, paths, inputs) => {
+  const parsedValue = helpers.tryParseValue(inputs.value);
+  const metadata = metadataProcessor();
+  const queryResult = valueProcessor();
 
   paths.forEach((path) => {
-    const foundValue = expression.evaluate(helpers.readFile(path, true));
+    const queryFilePath = path.replace(sourceFolder, '~').replace('.json', '');
+    const queryNodes = jsonpath.nodes(
+      helpers.readFile(path, true),
+      inputs.keyQuery
+    );
 
-    if (
-        // No value is found
-        foundValue == null ||
-        // If an expected value is given and is not equal to the found value.
-        (inputs.value !== '*' && tryParseValue(inputs.value) !== foundValue)
-      ) return;
+    // No result found in current file
+    if (queryNodes.length === 0) {
+      metadata.addFileWithNoValue(queryFilePath);
+      return;
+    }
 
-    result[path.replace(sourceFolder, '~').replace('.json', '')] = foundValue;
+    const queryProcessedResult = valueProcessor();
+    queryNodes.forEach((item) => {
+      if (inputs.value !== '*' && ((!Array.isArray(item.value) && parsedValue !== item.value) || (Array.isArray(item.value) && !Array.isArray(parsedValue) && item.value.findIndex(value => value === inputs.value) === -1))) {
+        metadata.bumpNoMatch();
+        return;
+      }
+
+      queryProcessedResult.add(item.path.join('.').replace('$.', '').replace(/\d+/g, match => `[${match}]`), item.value);
+      metadata.bumpMatch();
+    });
+
+    if (!queryProcessedResult.hasGeneratedResult()) return;
+    queryResult.add(queryFilePath, queryProcessedResult.output());
   });
 
-  return result;
+  return {
+    metadata: metadata.output(),
+    queryResult: queryResult.output()
+  };
 };
 
 module.exports = (sourceFolder, search, inputs) => {
-  return processSubjectFiles(
+  return processFiles(
     sourceFolder,
-    getSubjectFilePaths(sourceFolder, search),
+    helpers.getFilePaths(sourceFolder, search),
     inputs
   );
 }

@@ -7,7 +7,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Glup tester",
+      "name": "Gulp tester",
       "program": "${workspaceRoot}/node_modules/gulp/bin/gulp.js",
       "stopOnEntry": false,
       "args": [],

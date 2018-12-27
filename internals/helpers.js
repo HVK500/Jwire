@@ -1,4 +1,5 @@
 const fs = require('fs');
+const glob = require('glob');
 const pathing = require('path');
 const mkdirp = require('mkdirp');
 const config = require('../config.json');
@@ -16,13 +17,15 @@ module.exports = {
   getConfig: () => {
     return config;
   },
-  formatTimeStamp:() => {
+  formatTimeStamp: () => {
     const timeStamp = new Date();
     return `${timeStamp.getFullYear()}-${timeStamp.getMonth()+1}-${timeStamp.getDate()}-${timeStamp.getHours()}-${timeStamp.getMinutes()}`;
   },
   readFile: (path, parse) => {
     path = pathing.resolve(path);
-    const result = fs.readFileSync(path, { encoding: 'utf8' });
+    const result = fs.readFileSync(path, {
+      encoding: 'utf8'
+    });
     return !parse ? result : JSON.parse(result);
   },
   writeFile: (path, data, parse) => {
@@ -31,5 +34,19 @@ module.exports = {
   },
   getFileName: (path) => {
     return pathing.basename(path, pathing.extname(path));
+  },
+  getFilePaths: (sourceFolder, search) => {
+    return glob.sync(search, {
+      cwd: sourceFolder,
+      nosort: true,
+      absolute: true
+    });
+  },
+  tryParseValue: (value) => {
+    try {
+      return JSON.parse(value); // object | array
+    } catch (err) {
+      return value; // string
+    }
   }
 }

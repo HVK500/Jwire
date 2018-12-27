@@ -15,12 +15,14 @@ const process = (inputs) => {
   // Output in file
   helpers.writeFile(
     `${config.outputFolder}/query-result-${helpers.formatTimeStamp()}.json`,
-    JSON.stringify({
+    {
       query: inputs.keyQuery,
       matchValue: inputs.value,
       source: config.sourceFolder,
-      results: result
-    }, null, 2)
+      metadata: result.metadata,
+      results: result.queryResult
+    },
+    true
   );
 };
 
@@ -51,13 +53,13 @@ gulp.task('query', () => {
 
 gulp.task('default', () => {
   process({
-    keyQuery: '*.*.deviceAndOsRestricted.*.deviceUA',
+    keyQuery: '$..age',
     value: '*'
   });
 });
 
 gulp.task('clean', () => {
   del([
-    './results/*'
+    './results'
   ]);
 });

@@ -22,14 +22,14 @@ const processPlugins = (onComplete) => {
 
 module.exports = {
   init: (pluginFolder, onComplete) => {
-    pluginFolder = pathing.resolve(pluginFolder);
-    if (fs.existsSync(pluginFolder) && fs.readdirSync(pluginFolder).length === 0) {
+    const resolvedPluginFolder = pathing.resolve(pluginFolder);
+    if (!pluginFolder || (fs.existsSync(resolvedPluginFolder) && fs.readdirSync(resolvedPluginFolder).length === 0)) {
       processPlugins(onComplete)([]);
       return;
     }
 
     pluginSystem({
-      paths: [ `${pluginFolder}\\` ]
+      paths: [ `${resolvedPluginFolder}/` ]
     })
     .then(processPlugins(onComplete))
     .catch((err) => {

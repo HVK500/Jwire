@@ -7,11 +7,12 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Gulp tester",
+      "name": "Gulp task",
       "program": "${workspaceRoot}/node_modules/gulp/bin/gulp.js",
       "stopOnEntry": false,
-      "args": [],
-      "cwd": "${workspaceRoot}",
+      "args": [
+        "debug"
+      ],
       "runtimeArgs": [
           "--nolazy"
       ],

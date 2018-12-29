@@ -1,8 +1,9 @@
 {
+  "debugLogging": false,
   "input": {
-    "sourceFolder": "",
+    "pluginFolder": "./plugins",
     "searchCriteria": "",
-    "pluginFolder": "./plugins"
+    "sourceFolder": ""
   },
   "output": {
     "resultFolder": "./results"

@@ -1,21 +1,18 @@
-module.exports = (id, type, callbacks) => {
-  id = !!id ? id : +new Date;
-  type = !!type ? type : 'formatter';
+const pluginEvent = require('signal-js');
 
-  const result = {
-    id: id,
-    type: type, // One type for now?
-    onAddNode: value => value,
-    onOutput: value => value
-  };
-
-  // Callbacks is a Map
-  if (!!callbacks && callbacks.size !== 0) {
-    callbacks.forEach((value, key) => {
-      if (!result[key]) return;
-      result[key] = value;
-    });
+module.exports = (id, eventRegister, config) => {
+  if (!id || !config || (!eventRegister || eventRegister.size === 0)) {
+    throw 'Failed to initialize plugin - Malformed plugin structure.';
   }
 
-  return result;
+  // Check whether plugin is enabled, defaults to disabled
+  if (config.enabled === false) {
+    return;
+  }
+
+  eventRegister.forEach((event, eventName) => {
+    pluginEvent.on(eventName, event);
+  });
+
+  console.log(`Using the "${id}" plugin!`);
 };

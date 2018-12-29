@@ -1,39 +1,24 @@
-const fs = require('fs');
 const pathing = require('path');
 const pluginSystem = require('plugin-system');
-const pluginBase = require('./plugin-base');
+const helpers = require('./helpers');
+const base = require('./plugin-base');
 
-const processPlugins = (onComplete) => {
-  return (plugins) => {
-    const result = {};
+module.exports = (pluginFolder) => {
+  pluginSystem.registerLogger(helpers.logger());
 
-    if (plugins.length === 0) {
-      plugins.push(pluginBase());
-    }
+  return Promise.all([
+    pluginSystem({ paths: [ `${pathing.resolve(pluginFolder)}\\` ] })
+      .then((plugins) => {
+        if (plugins.length === 0) {
+          throw 'error';
+        }
 
-    plugins.forEach((plugin) => {
-      if (!!result[plugin.type]) return;
-      result[plugin.type] = plugin;
-    });
-
-    onComplete(result);
-  }
+        plugins.forEach((plugin) => {
+          plugin(base);
+        });
+      })
+      .catch((err) => {
+        throw `No plugins found or enabled. Plugins are required to output the resulting query data. - ${err}`;
+      })
+  ]);
 };
-
-module.exports = {
-  init: (pluginFolder, onComplete) => {
-    const resolvedPluginFolder = pathing.resolve(pluginFolder);
-    if (!pluginFolder || (fs.existsSync(resolvedPluginFolder) && fs.readdirSync(resolvedPluginFolder).length === 0)) {
-      processPlugins(onComplete)([]);
-      return;
-    }
-
-    pluginSystem({
-      paths: [ `${resolvedPluginFolder}/` ]
-    })
-    .then(processPlugins(onComplete))
-    .catch((err) => {
-      console.log(err);
-    });
-  }
-}

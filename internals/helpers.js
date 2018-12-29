@@ -14,6 +14,19 @@ const createPath = (path) => {
 };
 
 module.exports = {
+  logger: () => {
+    if (!config.debugLogging) return {};
+
+    const base = (...args) => console.log(JSON.stringify(args));
+    return {
+      trace: base,
+      info: base,
+      warn: base,
+      error: base,
+      debug: base,
+      fatal: base
+    };
+  },
   getConfig: () => {
     return config;
   },
@@ -48,5 +61,29 @@ module.exports = {
     } catch (err) {
       return value; // string
     }
+  },
+  objectBuilder: () => {
+    let result = {};
+    let sortContainer = [];
+    let orderPreferenceCounter = 1;
+
+    return {
+      add: (key, value, orderPreference) => {
+        orderPreference = !orderPreference ? orderPreferenceCounter : orderPreference;
+        sortContainer.push({ key: key, value: value, orderPreference: orderPreference });
+        orderPreferenceCounter++;
+      },
+      output: () => {
+        sortContainer
+          .sort((a, b) => {
+            return a.orderPreference - b.orderPreference;
+          })
+          .forEach((item) => {
+            result[item.key] = item.value;
+          });
+
+        return result;
+      }
+    };
   }
 }

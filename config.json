@@ -1,5 +1,5 @@
 {
-  "debugLogging": false,
+  "logging": true,
   "input": {
     "pluginFolder": "./plugins",
     "searchCriteria": "",

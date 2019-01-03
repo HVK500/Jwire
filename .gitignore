@@ -247,3 +247,4 @@ ModelManifest.xml
 # Project Custom #
 **/results
 **/plugins
+frontend/client/bundle\.js

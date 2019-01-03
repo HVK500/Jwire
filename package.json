@@ -1,19 +1,22 @@
 {
   "name": "json-crawler",
   "description": "Query values from json file(s)",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "query": "gulp query",
+    "ui:query": "gulp ui:query",
     "clean": "gulp clean"
   },
   "devDependencies": {
     "del": "^3.0.0",
+    "express": "^4.16.4",
     "glob": "^7.1.3",
     "gulp": "^3.9.1",
     "jsonata": "^1.5.4",
     "jsonpath": "^1.0.0",
     "log-wrapper": "^0.1.2",
     "mkdirp": "^0.5.1",
+    "opn": "^5.4.0",
     "plugin-system": "^0.2.1",
     "readline-sync": "^1.4.9",
     "signal-js": "1.0.2"

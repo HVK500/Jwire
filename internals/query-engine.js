@@ -12,7 +12,7 @@ const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallbac
     const fileContent = helpers.readFile(path, true);
     const nodesCollection = jsonpath.nodes(
       fileContent,
-      inputs.keyQuery
+      inputs.keyPath
     );
 
     // No result found in current file
@@ -24,7 +24,7 @@ const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallbac
     pluginEvent.trigger('onBeforeProcessNodes', filePath, pathIndex, fileContent, nodesCollection);
     let hasGeneratedResult = false;
     nodesCollection.forEach((node, nodeIndex) => {
-      if (inputs.value !== '*' && ((!Array.isArray(node.value) && parsedInputValue !== node.value) || (Array.isArray(node.value) && !Array.isArray(parsedInputValue) && node.value.findIndex(value => value === inputs.value) === -1))) {
+      if (inputs.expectedValue !== '*' && ((!Array.isArray(node.value) && parsedInputValue !== node.value) || (Array.isArray(node.value) && !Array.isArray(parsedInputValue) && node.value.findIndex(value => value === inputs.expectedValue) === -1))) {
         return;
       }
 
@@ -46,4 +46,4 @@ module.exports = (sourceFolder, search, inputs, outputCallback) => {
     inputs,
     outputCallback
   );
-}
+};

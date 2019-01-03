@@ -1,23 +1,25 @@
 const gulp = require('gulp');
-const del = require('del');
 const readline = require('readline-sync');
-const queryProcessor = require('./internals/query-processor');
-const helpers = require('./internals/helpers');
-const config = helpers.getConfig();
+const config = require('./internals/helpers').getConfig();
+
+gulp.task('ui:query', () => {
+  console.log('Press ctrl + c to cancel');
+  const port = Number(readline.question('Port: (Defaults to 3000) ') || 3000);
+
+  require('./frontend/server/web-api')(port);
+});
 
 gulp.task('query', () => {
-  const keyQuery = readline.question('Enter key query: ');
-  const value = readline.question('Enter the expected value: ') || '*';
+  console.log('Press ctrl + c to cancel');
+  const keyPath = readline.question('Enter key path: ');
+  const expectedValue = readline.question('Enter the expected value: (Defaults to *) ');
 
-  if (!keyQuery) {
+  if (!keyPath) {
     console.log(`Don't be dumb...`);
     return;
   }
 
-  queryProcessor({
-    keyQuery: keyQuery,
-    value: value
-  });
+  require('./internals/query-processor')(keyPath, expectedValue);
 });
 
 gulp.task('debug', () => {
@@ -28,7 +30,7 @@ gulp.task('debug', () => {
 });
 
 gulp.task('clean', () => {
-  del([
+  require('del')([
     config.output.resultFolder
   ]);
 });

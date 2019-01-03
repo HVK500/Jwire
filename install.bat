@@ -1,3 +1,3 @@
 
 @echo off
-yarn
+yarn & cd ./frontend/ & yarn & yarn build

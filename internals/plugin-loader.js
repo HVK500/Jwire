@@ -7,18 +7,20 @@ module.exports = (pluginFolder) => {
   pluginSystem.registerLogger(helpers.logger());
 
   return Promise.all([
-    pluginSystem({ paths: [ `${pathing.resolve(pluginFolder)}\\` ] })
-      .then((plugins) => {
-        if (plugins.length === 0) {
-          throw 'error';
-        }
+    pluginSystem({
+      paths: [`${pathing.resolve(pluginFolder)}\\`]
+    })
+    .then((plugins) => {
+      if (plugins.length === 0) {
+        throw 'error';
+      }
 
-        plugins.forEach((plugin) => {
-          plugin(base);
-        });
-      })
-      .catch((err) => {
-        throw `No plugins found or enabled. Plugins are required to output the resulting query data. - ${err}`;
-      })
+      plugins.forEach((plugin) => {
+        plugin(base);
+      });
+    })
+    .catch((err) => {
+      throw `No plugins found or enabled. Plugins are required to output the resulting query data. - ${err}`;
+    })
   ]);
 };

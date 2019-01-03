@@ -4,10 +4,16 @@ const helpers = require('../internals/helpers');
 const queryEngine = require('../internals/query-engine');
 const config = helpers.getConfig();
 
-module.exports = (inputs) => {
+module.exports = (keyPath, expectedValue) => {
+  expectedValue = !expectedValue ? '*' : expectedValue;
+  const inputs = {
+    keyPath: keyPath,
+    expectedValue: expectedValue
+  };
+
   pluginLoader(config.input.pluginFolder)
     .then(() => {
-      const resultBuilder= helpers.objectBuilder();
+      const resultBuilder = helpers.objectBuilder();
 
       pluginEvent.trigger('onBeforeQueryStart', config.input.sourceFolder, inputs);
 

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>JSON Crawler</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="./css/materializecss" rel="stylesheet">
+  <script src="./js/materializecss"></script>
+  <script src="./js/bundle"></script>
+</head>
+
+<body>
+  <div class="container">
+    <div class="row">
+      <h2 class="center-align">JSON Crawler</h2>
+    </div>
+    <div class="divider"></div>
+    <!-- TODO Add a section showing what folder you are querying on the machine and granting the ablity to change the folder selection -->
+    <div class="row">
+      <div class="input-field col s6">
+        <input class="validate" id="key-path" type="text">
+        <label for="key-path">Key Path</label>
+      </div>
+      <div class="input-field col s6">
+        <input class="validate" id="expected-value" type="text" placeholder="*">
+        <label for="expected-value">Expected Value</label>
+      </div>
+    </div>
+    <div class="row right-align">
+      <a class="waves-effect waves-light btn" id="clear-query-results" disabled="disabled"><i class="material-icons right">clear</i>Clear</a>
+      <a class="waves-effect waves-light btn" id="submit-query" disabled="disabled"><i class="material-icons right">send</i>Query</a>
+    </div>
+    <!-- TODO Add a section where you can choose raw or formatted results -->
+    <div class="row">
+      <form class="col s12">
+        <div class="row">
+          <div class="input-field col s12">
+            <textarea class="materialize-textarea" id="query-results" readonly disabled="disabled"></textarea>
+            <label for="query-results">Query Results</label>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+
+</html>

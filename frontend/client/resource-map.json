@@ -1,0 +1,12 @@
+{
+  "pages": {
+    "home": "./frontend/index.html"
+  },
+  "css": {
+    "materializecss": "./frontend/node_modules/materialize-css/dist/css/materialize.min.css"
+  },
+  "js": {
+    "bundle": "./frontend/client/bundle.js",
+    "materializecss": "./frontend/node_modules/materialize-css/dist/js/materialize.min.js"
+  }
+}

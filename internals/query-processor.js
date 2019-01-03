@@ -4,7 +4,7 @@ const helpers = require('../internals/helpers');
 const queryEngine = require('../internals/query-engine');
 const config = helpers.getConfig();
 
-module.exports = (keyPath, expectedValue) => {
+module.exports = (keyPath, expectedValue, callback) => {
   expectedValue = !expectedValue ? '*' : expectedValue;
   const inputs = {
     keyPath: keyPath,
@@ -24,6 +24,8 @@ module.exports = (keyPath, expectedValue) => {
         resultBuilder.output(),
         true
       );
+
+      callback ? callback(resultBuilder.output()) : null;
     })
     .catch((err) => {
       console.log(err);

@@ -3,8 +3,7 @@ const pluginEvent = require('signal-js');
 const helpers = require('./helpers');
 
 const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallback) => {
-  const parsedInputValue = helpers.tryParseValue(inputs.value);
-
+  const parsedInputValue = helpers.tryParseValue(inputs.expectedValue);
   pluginEvent.trigger('onBeforeProcessingPaths', sourceParentFolder, sourceFilePaths, inputs, parsedInputValue);
 
   sourceFilePaths.forEach((path, pathIndex) => {
@@ -18,21 +17,15 @@ const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallbac
     // No result found in current file
     if (nodesCollection.length === 0) {
       pluginEvent.trigger('onNodesNotFound', filePath, pathIndex, fileContent);
-      return;
+    } else {
+      pluginEvent.trigger('onBeforeProcessNodes', filePath, pathIndex, fileContent, nodesCollection);
+      nodesCollection.forEach((node, nodeIndex) => {
+        if (inputs.expectedValue !== '*' && ((!Array.isArray(node.value) && parsedInputValue !== node.value) || (Array.isArray(node.value) && !Array.isArray(parsedInputValue) && node.value.findIndex(value => value === inputs.expectedValue) === -1))) {
+          return;
+        }
+        pluginEvent.trigger('onProcessNode', node, nodeIndex, nodesCollection);
+      });
     }
-
-    pluginEvent.trigger('onBeforeProcessNodes', filePath, pathIndex, fileContent, nodesCollection);
-    let hasGeneratedResult = false;
-    nodesCollection.forEach((node, nodeIndex) => {
-      if (inputs.expectedValue !== '*' && ((!Array.isArray(node.value) && parsedInputValue !== node.value) || (Array.isArray(node.value) && !Array.isArray(parsedInputValue) && node.value.findIndex(value => value === inputs.expectedValue) === -1))) {
-        return;
-      }
-
-      pluginEvent.trigger('onProcessNode', node, nodeIndex, nodesCollection);
-      hasGeneratedResult = true;
-    });
-
-    if (!hasGeneratedResult) return;
     pluginEvent.trigger('onCompleteProcessingPath', filePath, pathIndex, fileContent, nodesCollection);
   });
 

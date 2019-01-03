@@ -1,3 +1,4 @@
+const queryProcessor = require('../../internals/query-processor');
 const helpers = require('../../internals/helpers');
 
 module.exports = {
@@ -27,6 +28,14 @@ module.exports = {
     });
   },
   setupApiRoutes: (api) => {
-
+    api.get('/query', (request, response) => {
+      queryProcessor(
+        request.param('keyPath'),
+        request.param('expectedValue'),
+        (output) => {
+          response.send(output);
+        }
+      );
+    });
   }
 };

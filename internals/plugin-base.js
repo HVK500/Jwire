@@ -1,6 +1,8 @@
 const pluginEvent = require('signal-js');
 
 module.exports = (id, eventRegister, config) => {
+  eventRegister = new Map(Object.entries(eventRegister));
+
   if (!id || !config || (!eventRegister || eventRegister.size === 0)) {
     throw 'Failed to initialize plugin - Malformed plugin structure.';
   }

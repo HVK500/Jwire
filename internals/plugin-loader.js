@@ -4,7 +4,7 @@ const helpers = require('./helpers');
 const base = require('./plugin-base');
 
 module.exports = (pluginFolder) => {
-  pluginSystem.registerLogger(helpers.logger());
+  pluginSystem.registerLogger(helpers.getLoggerContext());
 
   return Promise.all([
     pluginSystem({

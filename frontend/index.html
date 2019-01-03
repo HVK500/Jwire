@@ -31,7 +31,7 @@
     </div>
     <div class="row right-align">
       <a class="waves-effect waves-light btn" id="clear-query-results" disabled="disabled"><i class="material-icons right">clear</i>Clear</a>
-      <a class="waves-effect waves-light btn" id="submit-query" disabled="disabled"><i class="material-icons right">send</i>Query</a>
+      <a class="waves-effect waves-light btn modal-trigger" id="submit-query" href="#loading-model" disabled="disabled"><i class="material-icons right">send</i>Query</a>
     </div>
     <!-- TODO Add a section where you can choose raw or formatted results -->
     <div class="row">
@@ -43,6 +43,14 @@
           </div>
         </div>
       </form>
+    </div>
+  </div>
+  <div class="modal" id="loading-model">
+    <div class="modal-content">
+      <h4>Getting Query Result...</h4>
+      <div class="progress">
+        <div class="indeterminate"></div>
+      </div>
     </div>
   </div>
 </body>

@@ -23,10 +23,10 @@ gulp.task('query', () => {
 });
 
 gulp.task('debug', () => {
-  queryProcessor({
-    keyQuery: '',
-    value: ''
-  });
+  require('./internals/query-processor')(
+    '',
+    ''
+  );
 });
 
 gulp.task('clean', () => {

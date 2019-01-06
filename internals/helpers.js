@@ -2,8 +2,10 @@ const fs = require('fs');
 const glob = require('glob');
 const pathing = require('path');
 const mkdirp = require('mkdirp');
+const logWrapper = require('log-wrapper');
 const config = require('../config.json');
 
+const logClient = null;
 const createPath = (path) => {
   const directory = pathing.dirname(path);
   // If the directory does not exist, create it
@@ -14,6 +16,10 @@ const createPath = (path) => {
 };
 
 module.exports = {
+  dateDiff: (d1, d2) => {
+    // d1 is larger date, d2 is smaller date
+    return Math.ceil(Math.abs(d1.getTime() - d2.getTime()));
+  },
   formatTimeStamp: () => {
     const timeStamp = new Date();
     return `${timeStamp.getFullYear()}-${timeStamp.getMonth() + 1}-${timeStamp.getDate()}-${timeStamp.getHours()}-${timeStamp.getMinutes()}`;
@@ -34,6 +40,13 @@ module.exports = {
       absolute: true
     });
   },
+  getLogger: context => {
+    if (context) {
+      logClient = logWrapper(context);
+    }
+
+    return logClient;
+  },
   getLoggerContext: () => {
     if (!config.logging) return {};
 
@@ -53,29 +66,33 @@ module.exports = {
       callback(key, value, parent);
     }
   },
-  objectBuilder: () => {
-    let result = {};
-    let sortContainer = [];
-    let orderPreferenceCounter = 1;
-    return {
-      add: (key, value, orderPreference) => {
-        orderPreference = !orderPreference ? orderPreferenceCounter : orderPreference;
-        sortContainer.push({
-          key: key,
-          value: value,
-          orderPreference: orderPreference
-        });
-        orderPreferenceCounter++;
-      },
-      output: () => {
-        sortContainer.sort((a, b) => {
-          return a.orderPreference - b.orderPreference;
-        }).forEach(item => {
-          result[item.key] = item.value;
-        });
-        return result;
-      }
-    };
+  createObjectBuilder: () => {
+    return () => {
+      let sortContainer = [];
+      let orderPreferenceCounter = 1;
+      return {
+        add: (key, value, orderPreference) => {
+          orderPreference = !orderPreference ? orderPreferenceCounter : orderPreference;
+          sortContainer.push({
+            key: key,
+            value: value,
+            orderPreference: orderPreference
+          });
+          orderPreferenceCounter++;
+        },
+        output: () => {
+          let result = {};
+          sortContainer.sort((a, b) => {
+            return a.orderPreference - b.orderPreference;
+          }).forEach(item => {
+            result[item.key] = item.value;
+          });
+          sortContainer = [];
+          orderPreferenceCounter = 1;
+          return result;
+        }
+      };
+    }
   },
   readFile: (path, parse) => {
     path = pathing.resolve(path);

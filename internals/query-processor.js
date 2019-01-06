@@ -1,7 +1,7 @@
-const pluginEvent = require('signal-js');
-const pluginLoader = require('../internals/plugin-loader');
-const helpers = require('../internals/helpers');
+const pluginEvent = require('./plugin-system/utils').events;
+const pluginLoader = require('./plugin-system/loader');
 const queryEngine = require('../internals/query-engine');
+const helpers = require('../internals/helpers');
 const config = helpers.getConfig();
 
 module.exports = (keyPath, expectedValue, callback) => {
@@ -11,23 +11,20 @@ module.exports = (keyPath, expectedValue, callback) => {
     expectedValue: expectedValue
   };
 
-  pluginLoader(config.input.pluginFolder)
-    .then(() => {
-      const resultBuilder = helpers.objectBuilder();
+  pluginLoader(config.input.pluginFolder);
 
-      pluginEvent.trigger('onBeforeQueryStart', config.input.sourceFolder, inputs);
+  const resultBuilder = helpers.createObjectBuilder()();
 
-      queryEngine(config.input.sourceFolder, config.input.searchCriteria, inputs, resultBuilder.add);
+  pluginEvent.emit('onBeforeQueryStart', config.input.sourceFolder, inputs);
 
-      helpers.writeFile(
-        `${config.output.resultFolder}/query-result-${helpers.formatTimeStamp()}.json`,
-        resultBuilder.output(),
-        true
-      );
+  queryEngine(config.input.sourceFolder, config.input.searchCriteria, inputs, resultBuilder.add);
 
-      callback ? callback(resultBuilder.output()) : null;
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  const queryResult = resultBuilder.output();
+  helpers.writeFile(
+    `${config.output.resultFolder}/query-result-${helpers.formatTimeStamp()}.json`,
+    queryResult,
+    true
+  );
+
+  callback ? callback(queryResult) : null;
 };

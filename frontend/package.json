@@ -1,8 +1,8 @@
 {
-  "name": "json-crawler-ui",
+  "name": "jwire-ui",
   "description": "Query values from json file(s) with a UI",
   "version": "1.0.0",
-  "repository": "git@bitbucket.org:HVK500/json-crawler.git",
+  "repository": "git@bitbucket.org:HVK500/jwire.git",
   "author": "Matthew Laird <hvk500@gmail.com>",
   "license": "MIT",
   "scripts": {

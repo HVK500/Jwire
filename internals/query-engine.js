@@ -1,10 +1,10 @@
 const jsonpath = require('jsonpath'); // https://goessner.net/articles/JsonPath/index.html#e2
-const pluginEvent = require('signal-js');
+const pluginEvent = require('./plugin-system/utils').events;
 const helpers = require('./helpers');
 
 const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallback) => {
   const parsedInputValue = helpers.tryParseValue(inputs.expectedValue);
-  pluginEvent.trigger('onBeforeProcessingPaths', sourceParentFolder, sourceFilePaths, inputs, parsedInputValue);
+  pluginEvent.emit('onBeforeProcessingPaths', sourceParentFolder, sourceFilePaths, inputs, parsedInputValue);
 
   sourceFilePaths.forEach((path, pathIndex) => {
     const filePath = path.replace(sourceParentFolder, '~').replace('.json', '');
@@ -16,20 +16,20 @@ const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallbac
 
     // No result found in current file
     if (nodesCollection.length === 0) {
-      pluginEvent.trigger('onNodesNotFound', filePath, pathIndex, fileContent);
+      pluginEvent.emit('onNodesNotFound', filePath, pathIndex, fileContent);
     } else {
-      pluginEvent.trigger('onBeforeProcessNodes', filePath, pathIndex, fileContent, nodesCollection);
+      pluginEvent.emit('onBeforeProcessNodes', filePath, pathIndex, fileContent, nodesCollection);
       nodesCollection.forEach((node, nodeIndex) => {
         if (inputs.expectedValue !== '*' && ((!Array.isArray(node.value) && parsedInputValue !== node.value) || (Array.isArray(node.value) && !Array.isArray(parsedInputValue) && node.value.findIndex(value => value === inputs.expectedValue) === -1))) {
           return;
         }
-        pluginEvent.trigger('onProcessNode', node, nodeIndex, nodesCollection);
+        pluginEvent.emit('onProcessNode', node, nodeIndex, nodesCollection);
       });
     }
-    pluginEvent.trigger('onCompleteProcessingPath', filePath, pathIndex, fileContent, nodesCollection);
+    pluginEvent.emit('onCompleteProcessingPath', filePath, pathIndex, fileContent, nodesCollection);
   });
 
-  pluginEvent.trigger('onReturnOutput', outputCallback);
+  pluginEvent.emit('onReturnOutput', outputCallback);
 };
 
 module.exports = (sourceFolder, search, inputs, outputCallback) => {

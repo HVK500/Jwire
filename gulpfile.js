@@ -30,7 +30,7 @@ gulp.task('debug', () => {
 });
 
 gulp.task('clean', () => {
-  require('del')([
+  require('trash')([
     config.output.resultFolder
   ]);
 });

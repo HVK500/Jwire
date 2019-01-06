@@ -18,5 +18,5 @@ module.exports = (id, eventRegister, config = {}) => {
     pluginEvent.on(eventName, id, event);
   });
 
-  console.log(`Using the "${id}" plugin!`); // TODO: Add proper logging here
+  console.log(`Using the "${id}" plugin!`); // TODO: Add proper logging
 };

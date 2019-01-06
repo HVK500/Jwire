@@ -2,7 +2,6 @@ const fs = require('fs');
 const pathing = require('path');
 const pluginBase = require('./base');
 const pluginUtils = require('./utils');
-const pluginEvents = pluginUtils.events;
 
 // pluginSystem.registerLogger(helpers.getLoggerContext());
 
@@ -88,9 +87,10 @@ const reloadPlugins = () => {
 };
 
 module.exports = (pluginFolder) => {
-  // Check for at least one plugin
+  // TODO: Check for at least one plugin
+  // TODO: Error handling
+  // TODO: Logging
 
-  // Get a plugin map
   if (pluginMap.length === 0) {
     initialLoadPlugins(pluginFolder);
     return;
@@ -98,12 +98,4 @@ module.exports = (pluginFolder) => {
 
   // Check what plugins have changed - collect the ones that need to be reloaded
   reloadPlugins();
-
-  // if (container === null || pluginUtils.havePluginsChanged(pluginMap)) {
-  //   pluginMap = pluginUtils.getPluginMap(pluginFolder);
-
-  //   pluginMap.forEach((pluginData) => {
-  //     pluginData.module(pluginBase, pluginUtils.utils);
-  //   });
-  // }
 };

@@ -14,13 +14,11 @@ module.exports = {
     emit: (id, ...args) => {
       pluginEventsEmitter.emit(id, ...args);
     },
-    off: (pluginId) => {
+    off: pluginId => {
       if (!pluginEventsUnbindCollection[pluginId]) return;
-
-      pluginEventsUnbindCollection[pluginId].forEach((unbinder) => {
+      pluginEventsUnbindCollection[pluginId].forEach(unbinder => {
         unbinder();
       });
-
       pluginEventsUnbindCollection[pluginId] = undefined;
     },
     on: (id, pluginId, callback) => {
@@ -28,31 +26,9 @@ module.exports = {
       pluginEventsUnbindCollection[pluginId].push(pluginEventsEmitter.on(id, callback));
     }
   },
-  stillExists: (plugin) => {
-    return fs.existsSync(plugin.parentFolder) && fs.existsSync(plugin.index.path);
-  },
-  setEnabledState: (config) => {
-    return config.content.enabled == null ? true : config.content.enabled;
-  },
-  setIndex: (path) => {
-    return {
-      path: path,
-      module: require(path),
-      timeChanged: fs.statSync(path).mtime.getTime()
-    };
-  },
-  setConfig: (path) => {
-    return {
-      path: path,
-      content: helpers.readFile(path, true),
-      timeChanged: fs.statSync(path).mtime.getTime()
-    };
-  },
-  hasIndexChanged: (plugin) => {
-    return fs.statSync(plugin.index.path).mtime.getTime() !== plugin.index.timeChanged;
-  },
   hasConfigChanged: (plugin) => {
     const fileExists = fs.existsSync(`${plugin.parentFolder}/config.json`);
+
     if (!plugin.config && fileExists) {
       return 'added';
     } else if (plugin.config && !fileExists) {
@@ -62,6 +38,29 @@ module.exports = {
     }
 
     return 'unchanged';
+  },
+  hasIndexChanged: (plugin) => {
+    return fs.statSync(plugin.index.path).mtime.getTime() !== plugin.index.timeChanged;
+  },
+  setConfig: path => {
+    return {
+      path: path,
+      content: helpers.readFile(path, true),
+      timeChanged: fs.statSync(path).mtime.getTime()
+    };
+  },
+  setEnabledState: (config) => {
+    return config.content.enabled == null ? true : config.content.enabled;
+  },
+  setIndex: path => {
+    return {
+      path: path,
+      module: require(path),
+      timeChanged: fs.statSync(path).mtime.getTime()
+    };
+  },
+  stillExists: (plugin) => {
+    return fs.existsSync(plugin.parentFolder) && fs.existsSync(plugin.index.path);
   },
   utils: {
     createObjectBuilder: helpers.createObjectBuilder,

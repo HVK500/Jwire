@@ -2,6 +2,8 @@ const u = require('umbrellajs');
 const comms = require('./comms');
 const helpers = require('./helpers');
 
+// TODO: Clean up
+
 u(document).on('DOMContentLoaded', () => {
   const loadingModal = helpers.initModal(u('#loading-model'), { dismissible: false });
 

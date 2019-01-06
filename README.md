@@ -10,9 +10,8 @@ Couldn't use JQuery for obvious reasons, so mixed the words, JSON + Inquire = JW
 
 **Prerequisites**
 
-Install:
-- [Node](https://nodejs.org/en/)
-- [Yarn](https://yarnpkg.com/en/)
+* [Node](https://nodejs.org/en/)
+* [Yarn](https://yarnpkg.com/en/)
 
 ## Usage
 
@@ -24,8 +23,8 @@ Install:
   * (Optional) You may point the `resultFolder` to the path you wish you store your query results.
 3. Confirm there are valid / enabled plugin(s) to generate an output for your queries. (this would be in the configured path referred above) **(Note: At least one valid plugin must be enabled to generate an output)**
 4. Run either
-    * `run.bat` (console based interface)
-    * `ui-run.bat` (Web UI based interface)
+  * `run.bat` (console based interface)
+  * `ui-run.bat` (Web UI based interface)
 
 #### Scripts available
 
@@ -39,8 +38,9 @@ Install:
 ### How to query your data?
 
 Use this guide to figure out the key path you would need to provide in order to produce a result.
-  * [JsonPath Syntax](https://github.com/dchester/jsonpath#jsonpath-syntax)
-  * [goessner.net/articles/JsonPath](https://goessner.net/articles/JsonPath/index.html#e2)
+  
+* [JsonPath Syntax](https://github.com/dchester/jsonpath#jsonpath-syntax)
+* [goessner.net/articles/JsonPath](https://goessner.net/articles/JsonPath/index.html#e2)
 
 
 ### Plugins?

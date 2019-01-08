@@ -1,5 +1,6 @@
 const fs = require('fs');
 const pathing = require('path');
+const helpers = require('../helpers');
 const pluginBase = require('./base');
 const pluginUtils = require('./utils');
 
@@ -10,14 +11,14 @@ let pluginMap = [];
 const initialLoadPlugins = (pluginFolder) => {
   const result = [];
   const resolvedPluginRoot = pathing.resolve(pluginFolder);
-  const folders = fs.readdirSync(resolvedPluginRoot);
+  const pluginFolders = helpers.getDirectories(resolvedPluginRoot);
 
-  for (let folder of folders) {
+  for (let pluginFolder of pluginFolders) {
     const plugin = {};
-    const indexPath = `${resolvedPluginRoot}/${folder}/index.js`;
-    const configPath = `${resolvedPluginRoot}/${folder}/config.json`;
+    const indexPath = pathing.join(pluginFolder, 'index.js');
+    const configPath = pathing.join(pluginFolder, 'config.json');
     plugin.enabled = true;
-    plugin.parentFolder = `${resolvedPluginRoot}/${folder}`;
+    plugin.parentFolder = pluginFolder;
     plugin.index = pluginUtils.setIndex(indexPath);
 
     if (fs.existsSync(configPath)) {
@@ -57,7 +58,7 @@ const reloadPlugins = () => {
           break;
         case 'added':
         case 'changed':
-          plugin.config = pluginUtils.setConfig(`${plugin.parentFolder}/config.json`);
+          plugin.config = pluginUtils.setConfig(pathing.join(plugin.parentFolder, 'config.json');
           plugin.enabled = pluginUtils.setEnabledState(plugin.config);
           break;
         case 'unchanged':

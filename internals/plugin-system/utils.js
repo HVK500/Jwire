@@ -63,7 +63,7 @@ module.exports = {
     return fs.existsSync(plugin.parentFolder) && fs.existsSync(plugin.index.path);
   },
   utils: {
-    createObjectBuilder: helpers.createObjectBuilder,
+    objectBuilder: helpers.objectBuilder,
     getFileExtension: helpers.getFileExtension,
     getFileName: helpers.getFileName,
     getLogger: helpers.getLogger,

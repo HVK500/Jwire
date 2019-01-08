@@ -1,3 +1,4 @@
+const pathing = require('path');
 const pluginEvent = require('./plugin-system/utils').events;
 const pluginLoader = require('./plugin-system/loader');
 const queryEngine = require('../internals/query-engine');
@@ -13,7 +14,7 @@ module.exports = (keyPath, expectedValue, callback) => {
 
   pluginLoader(config.input.pluginFolder);
 
-  const resultBuilder = helpers.createObjectBuilder()();
+  const resultBuilder = new helpers.objectBuilder();
 
   pluginEvent.emit('onBeforeQueryStart', config.input.sourceFolder, inputs);
 
@@ -21,7 +22,7 @@ module.exports = (keyPath, expectedValue, callback) => {
 
   const queryResult = resultBuilder.output();
   helpers.writeFile(
-    `${config.output.resultFolder}/query-result-${helpers.formatTimeStamp()}.json`,
+    pathing.join(config.output.resultFolder, `query-result-${helpers.formatTimeStamp()}.json`),
     queryResult,
     true
   );

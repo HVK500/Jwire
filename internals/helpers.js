@@ -28,7 +28,7 @@ module.exports = {
     return config;
   },
   getDirectories: (path) => {
-    return fs.readdirSync(path)
+    return fs.readdirSync(pathing.resolve(path))
       .map(name => pathing.join(path, name))
       .filter(module.exports.isDirectory);
   },

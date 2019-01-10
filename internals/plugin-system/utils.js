@@ -1,9 +1,19 @@
 const fs = require('fs');
+const pathing = require('path');
 const nanoevents = require('nanoevents');
 const unbindAll = require('nanoevents/unbind-all');
 const helpers = require('../helpers');
+const pluginBase = require('./base');
 const pluginEventsEmitter = new nanoevents();
 const pluginEventsUnbindCollection = {}; // { pluginId: function[] }
+
+const assignGuid = (plugin) => {
+  const s4 = () => Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+
+  plugin.guid = s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+};
 
 module.exports = {
   events: {
@@ -14,26 +24,32 @@ module.exports = {
     emit: (id, ...args) => {
       pluginEventsEmitter.emit(id, ...args);
     },
-    off: pluginId => {
-      if (!pluginEventsUnbindCollection[pluginId]) return;
-      pluginEventsUnbindCollection[pluginId].forEach(unbinder => {
+    off: (guid) => {
+      if (!pluginEventsUnbindCollection[guid]) return;
+      pluginEventsUnbindCollection[guid].forEach(unbinder => {
         unbinder();
       });
-      pluginEventsUnbindCollection[pluginId] = undefined;
+      pluginEventsUnbindCollection[guid] = undefined;
     },
-    on: (id, pluginId, callback) => {
-      pluginEventsUnbindCollection[pluginId] = pluginEventsUnbindCollection[pluginId] == null ? [] : pluginEventsUnbindCollection[pluginId];
-      pluginEventsUnbindCollection[pluginId].push(pluginEventsEmitter.on(id, callback));
+    on: (pluginId, guid, callback) => {
+      pluginEventsUnbindCollection[guid] = pluginEventsUnbindCollection[guid] == null ? [] : pluginEventsUnbindCollection[guid];
+      pluginEventsUnbindCollection[guid].push(pluginEventsEmitter.on(pluginId, callback));
     }
   },
+  getConfigPath: (root) => {
+    return pathing.resolve(pathing.join(root, 'config.json'));
+  },
+  getIndexPath: (root) => {
+    return pathing.resolve(pathing.join(root, 'index.js'));
+  },
   hasConfigChanged: (plugin) => {
-    const fileExists = fs.existsSync(`${plugin.parentFolder}/config.json`);
+    const fileExists = fs.existsSync(module.exports.getConfigPath(plugin.parentFolder));
 
-    if (!plugin.config && fileExists) {
+    if (!plugin.config.content && fileExists) {
       return 'added';
-    } else if (plugin.config && !fileExists) {
+    } else if (plugin.config.content && !fileExists) {
       return 'removed';
-    } else if (plugin.config && fs.statSync(plugin.config.path).mtime.getTime() !== plugin.config.timeChanged) {
+    } else if (plugin.config.content && fs.statSync(plugin.config.path).mtime.getTime() !== plugin.config.timeChanged) {
       return 'changed';
     }
 
@@ -42,17 +58,31 @@ module.exports = {
   hasIndexChanged: (plugin) => {
     return fs.statSync(plugin.index.path).mtime.getTime() !== plugin.index.timeChanged;
   },
-  setConfig: path => {
+  loadUsing: (properties) => {
+    assignGuid(properties);
+    properties.index.module(pluginBase(properties));
+  },
+  resolveConfig: (plugin, configPath) => {
+    plugin.config = {
+      enabled: true
+    };
+
+    if (fs.existsSync(configPath)) {
+      plugin.config = module.exports.setConfig(configPath);
+    }
+  },
+  setConfig: (path) => {
+    const content = helpers.readFile(path, true);
     return {
+      enabled: (content.enabled == null ? true : content.enabled),
       path: path,
-      content: helpers.readFile(path, true),
+      content: content,
       timeChanged: fs.statSync(path).mtime.getTime()
     };
   },
-  setEnabledState: (config) => {
-    return config.content.enabled == null ? true : config.content.enabled;
-  },
-  setIndex: path => {
+  setIndex: (path) => {
+    require.cache[require.resolve(path)] = undefined;
+
     return {
       path: path,
       module: require(path),
@@ -63,13 +93,12 @@ module.exports = {
     return fs.existsSync(plugin.parentFolder) && fs.existsSync(plugin.index.path);
   },
   utils: {
-    objectBuilder: helpers.objectBuilder,
-    getFileExtension: helpers.getFileExtension,
-    getFileName: helpers.getFileName,
+    fileSystem: fs,
     getLogger: helpers.getLogger,
     loopObject: helpers.loopObject,
+    objectBuilder: helpers.objectBuilder,
+    pathing: pathing,
     readFile: helpers.readFile,
-    tryParseValue: helpers.tryParseValue,
     writeFile: helpers.writeFile
   }
 };

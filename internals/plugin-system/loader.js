@@ -1,7 +1,4 @@
-const fs = require('fs');
-const pathing = require('path');
 const helpers = require('../helpers');
-const pluginBase = require('./base');
 const pluginUtils = require('./utils');
 
 // pluginSystem.registerLogger(helpers.getLoggerContext());
@@ -10,31 +7,23 @@ let pluginMap = [];
 
 const initialLoadPlugins = (pluginFolder) => {
   const result = [];
-  const resolvedPluginRoot = pathing.resolve(pluginFolder);
-  const pluginFolders = helpers.getDirectories(resolvedPluginRoot);
+  const pluginFolders = helpers.getDirectories(pluginFolder);
 
   for (let pluginFolder of pluginFolders) {
     const plugin = {};
-    const indexPath = pathing.join(pluginFolder, 'index.js');
-    const configPath = pathing.join(pluginFolder, 'config.json');
-    plugin.enabled = true;
+    const indexPath = pluginUtils.getIndexPath(pluginFolder);
+    const configPath = pluginUtils.getConfigPath(pluginFolder);
+
     plugin.parentFolder = pluginFolder;
     plugin.index = pluginUtils.setIndex(indexPath);
 
-    if (fs.existsSync(configPath)) {
-      plugin.config = pluginUtils.setConfig(configPath);
-      plugin.enabled = pluginUtils.setEnabledState(plugin.config);
-    }
+    pluginUtils.resolveConfig(plugin, configPath);
 
     result.push(plugin);
   }
 
   result.forEach((plugin) => {
-    plugin.index.module(
-      pluginBase,
-      (plugin.config == null ? undefined : plugin.config.content),
-      pluginUtils.utils
-    );
+    pluginUtils.loadUsing(plugin);
   });
 
   pluginMap = result;
@@ -45,42 +34,40 @@ const reloadPlugins = () => {
   const plugins = [];
 
   pluginMap.forEach((plugin) => {
-    if (pluginUtils.stillExists(plugin)) {
-      const indexChangedState = pluginUtils.hasIndexChanged(plugin);
-      if (indexChangedState) {
-        plugin.index = pluginUtils.setIndex(plugin.index.path);
-      }
+    if (!pluginUtils.stillExists(plugin)) return;
+    const indexChangedState = pluginUtils.hasIndexChanged(plugin);
+    const configChangedState = pluginUtils.hasConfigChanged(plugin);
 
-      const configChangedState = pluginUtils.hasConfigChanged(plugin);
-      switch (configChangedState) {
-        case 'removed':
-          plugin.config = undefined;
-          break;
-        case 'added':
-        case 'changed':
-          plugin.config = pluginUtils.setConfig(pathing.join(plugin.parentFolder, 'config.json');
-          plugin.enabled = pluginUtils.setEnabledState(plugin.config);
-          break;
-        case 'unchanged':
-        default:
-          break;
-      }
+    if (indexChangedState) {
+      plugin.index = pluginUtils.setIndex(plugin.index.path);
+    }
 
-      if (indexChangedState || configChangedState !== 'unchanged') {
-        alteredPlugins.push(plugin);
-      } else {
-        plugins.push(plugin);
-      }
+    switch (configChangedState) {
+      case 'removed':
+        // plugin.config = undefined;
+        // break;
+      case 'added':
+      case 'changed':
+        pluginUtils.resolveConfig(
+          plugin,
+          pluginUtils.getConfigPath(plugin.parentFolder)
+        );
+        break;
+      case 'unchanged':
+      default:
+        break;
+    }
+
+    if (indexChangedState || configChangedState !== 'unchanged') {
+      pluginUtils.events.off(plugin.guid);
+      alteredPlugins.push(plugin);
+    } else {
+      plugins.push(plugin);
     }
   });
 
   alteredPlugins.forEach((plugin) => {
-    plugin.index.module(
-      pluginBase,
-      (plugin.config == null ? undefined : plugin.config.content),
-      pluginUtils.utils
-    );
-
+    pluginUtils.loadUsing(plugin);
     plugins.push(plugin);
   });
 

@@ -7,8 +7,18 @@ const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallbac
   pluginEvent.emit('onBeforeProcessingPaths', sourceParentFolder, sourceFilePaths, inputs, parsedInputValue);
 
   sourceFilePaths.forEach((path, pathIndex) => {
-    const filePath = path.replace(sourceParentFolder, '~').replace('.json', '');
-    const fileContent = helpers.readFile(path, true);
+    const filePath = path
+      .replace(/\\/g, '/')
+      .replace(sourceParentFolder, '~')
+      .replace('.json', '');
+
+    let fileContent = null;
+    try {
+      fileContent = helpers.readFile(path, true);
+    } catch (err) {
+      helpers.getLogger().error(`Skipping file because - ${err}`);
+      return;
+    }
     const nodesCollection = jsonpath.nodes(
       fileContent,
       inputs.keyPath
@@ -32,10 +42,12 @@ const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallbac
   pluginEvent.emit('onReturnOutput', outputCallback);
 };
 
-module.exports = (sourceFolder, search, inputs, outputCallback) => {
+module.exports = async (sourceFolder, search, inputs, outputCallback) => {
+  const sourceFilePaths = await helpers.getFilePaths(sourceFolder, search);
+
   return processFiles(
     sourceFolder,
-    helpers.getFilePaths(sourceFolder, search),
+    sourceFilePaths,
     inputs,
     outputCallback
   );

@@ -22,6 +22,7 @@ module.exports = {
       pluginEventsUnbindCollection = {};
     },
     emit: (id, ...args) => {
+      helpers.getLogger(helpers.getLoggerContext()).debug(`System -> to -> Plugin: "${id}"`);
       pluginEventsEmitter.emit(id, ...args);
     },
     off: (guid) => {

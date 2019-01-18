@@ -1,11 +1,11 @@
 const fs = require('fs');
-const glob = require('glob');
+const tinyGlob = require('tiny-glob');
 const pathing = require('path');
 const mkdirp = require('mkdirp');
 const logWrapper = require('log-wrapper');
 const config = require('../config.json');
 
-const logClient = null;
+let logClient = null;
 const createPath = (path) => {
   const directory = pathing.dirname(path);
   // If the directory does not exist, create it
@@ -38,32 +38,37 @@ module.exports = {
   getFileName: (path) => {
     return pathing.basename(path, pathing.extname(path));
   },
-  getFilePaths: (sourceFolder, search) => {
-    return glob.sync(search, {
+  getFilePaths: async (sourceFolder, search) => {
+    return await tinyGlob(
+      search, {
       cwd: sourceFolder,
-      nosort: true,
+      filesOnly: true,
       absolute: true
     });
   },
-  getLogger: (context) => {
+  getLogger: (context) => { // TODO: Redo this implemenation
     if (context) {
       logClient = logWrapper(context);
     }
 
     return logClient;
   },
-  getLoggerContext: () => {
+  getLoggerContext: () => { // TODO: Redo this implemenation
     if (!config.logging) return {};
 
-    const base = (...args) => console.log(JSON.stringify(args));
+    const base = (level) => {
+      return (message, ...args) => console.log(`[${level}]`, message, (args.length !== 0 ? JSON.stringify(args) : ''))
+    };
+
+    // TODO: Use chalk to colour messages
 
     return {
-      trace: base,
-      info: base,
-      warn: base,
-      error: base,
-      debug: base,
-      fatal: base
+      trace: base('TRACE'),
+      info: base('INFO'),
+      warn: base('WARN'),
+      error: base('ERROR'),
+      debug: base('DEBUG'),
+      fatal: base('FATAL')
     };
   },
   isDirectory: (path) => {
@@ -107,13 +112,18 @@ module.exports = {
     };
   },
   readFile: (path, parse) => {
-    path = pathing.resolve(path);
-    const result = fs.readFileSync(path, {
-      encoding: 'utf8'
-    });
-    return !parse ? result : JSON.parse(result);
+    try {
+      path = pathing.resolve(path);
+      const result = fs.readFileSync(path, {
+        encoding: 'utf8',
+        flag: 'r'
+      }).replace(/^\uFEFF/, ''); // Remove BOM from resulting string
+      return !parse ? result : JSON.parse(result);
+    } catch (err) {
+      throw `There was a problem reading - ${path}. ${err}`;
+    }
   },
-  tryParseValue: value => {
+  tryParseValue: (value) => {
     try {
       return JSON.parse(value); // object | array
     } catch (err) {

@@ -22,8 +22,8 @@ gulp.task('query', () => {
   require('./internals/query-processor')(keyPath, expectedValue);
 });
 
-gulp.task('debug', () => {
-  require('./internals/query-processor')(
+gulp.task('debug', async () => {
+  await require('./internals/query-processor')(
     '',
     ''
   );

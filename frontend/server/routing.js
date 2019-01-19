@@ -28,8 +28,8 @@ module.exports = {
     });
   },
   setupApiRoutes: (api) => {
-    api.get('/query', (request, response) => {
-      queryProcessor(
+    api.get('/query', async (request, response) => {
+      await queryProcessor(
         request.param('keyPath'),
         request.param('expectedValue'),
         (output) => {

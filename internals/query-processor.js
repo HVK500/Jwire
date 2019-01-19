@@ -5,7 +5,7 @@ const queryEngine = require('../internals/query-engine');
 const helpers = require('../internals/helpers');
 const config = helpers.getConfig();
 
-module.exports = (keyPath, expectedValue, callback) => {
+module.exports = async (keyPath, expectedValue, callback) => {
   expectedValue = !expectedValue ? '*' : expectedValue;
   const inputs = {
     keyPath: keyPath,
@@ -18,7 +18,7 @@ module.exports = (keyPath, expectedValue, callback) => {
 
   pluginEvent.emit('onBeforeQueryStart', config.input.sourceFolder, inputs);
 
-  queryEngine(config.input.sourceFolder, config.input.searchCriteria, inputs, resultBuilder.add);
+  await queryEngine(config.input.sourceFolder, config.input.searchCriteria, inputs, resultBuilder.add);
 
   const queryResult = resultBuilder.output();
   helpers.writeFile(

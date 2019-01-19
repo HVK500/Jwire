@@ -14,7 +14,7 @@
         "debug"
       ],
       "runtimeArgs": [
-          "--nolazy"
+        "--nolazy"
       ],
       "console": "internalConsole"
     }

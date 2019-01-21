@@ -28,9 +28,19 @@ module.exports = {
     return config;
   },
   getDirectories: (path) => {
-    return fs.readdirSync(pathing.resolve(path))
-      .map(name => pathing.join(path, name))
-      .filter(module.exports.isDirectory);
+    return new Promise((resolve, reject) => {
+      path = pathing.resolve(path);
+      fs.readdir(path, { encoding: 'utf8', withFileTypes: true },
+        (error, items) => {
+          if (error) reject(`There was a problem reading directory - ${path}. ${error}`);
+          resolve(
+            items.filter(item =>
+              item.isDirectory() && !(/\.git$/.test(item.name))).map(item =>
+                pathing.join(path, item.name))
+          );
+        }
+      );
+    });
   },
   getFileExtension: (path) => {
     return pathing.extname(path);
@@ -71,10 +81,6 @@ module.exports = {
       fatal: base('FATAL')
     };
   },
-  isDirectory: (path) => {
-    if (/\.git$/.test(path)) return false;
-    return fs.lstatSync(path).isDirectory();
-  },
   loopObject: (parent, callback) => {
     for (let [key, value] of Object.entries(parent)) {
       callback(key, value, parent);
@@ -112,26 +118,35 @@ module.exports = {
     };
   },
   readFile: (path, parse) => {
-    try {
-      path = pathing.resolve(path);
-      const result = fs.readFileSync(path, {
-        encoding: 'utf8',
-        flag: 'r'
-      }).replace(/^\uFEFF/, ''); // Remove BOM from resulting string
-      return !parse ? result : JSON.parse(result);
-    } catch (err) {
-      throw `There was a problem reading - ${path}. ${err}`;
-    }
+    return new Promise((resolve, reject) => {
+        path = pathing.resolve(path);
+        fs.readFile(path, { encoding: 'utf8', flag: 'r' },
+          (err, content) => {
+            if (err) reject(`There was a problem reading - ${path}. ${err}`);
+            content = content.replace(/^\uFEFF/, ''); // Remove BOM from resulting string
+            resolve(!parse ? content : JSON.parse(content));
+          }
+        );
+    });
   },
   tryParseValue: (value) => {
     try {
       return JSON.parse(value); // object | array
-    } catch (err) {
+    } catch (error) {
       return value; // string
     }
   },
-  writeFile: (path, data, parse) => {
-    data = !parse ? data : JSON.stringify(data, null, 2);
-    fs.writeFileSync(createPath(path), data);
+  writeFile: (path, content, parse) => {
+    return new Promise((resolve, reject) => {
+      path = pathing.resolve(path);
+      content = !parse ? content : JSON.stringify(content, null, 2);
+
+      fs.writeFile(createPath(path), content,
+        (error) => {
+          if (error) reject(`There was a problem writing file - ${path}. ${error}`);
+          resolve();
+        }
+      );
+    });
   }
 };

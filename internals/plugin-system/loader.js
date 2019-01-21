@@ -1,89 +1,109 @@
+const chokidar = require('chokidar');
+const pathing = require('path');
 const helpers = require('../helpers');
+const pluginManager = require('./manager');
 const pluginUtils = require('./utils');
+
+// 1. load plugins found
+// 2. create a watcher that only checks for new plugin folders
+// - plugins will remove themselves from the plugin pool
 
 // pluginSystem.registerLogger(helpers.getLoggerContext());
 
-let pluginMap = [];
+// const initialLoadPlugins = (pluginFolder) => {
+//   // for (let pluginDirectory of pluginDirectories) {
+//   //   // const plugin = {};
+//   //   // const indexPath = pluginUtils.getIndexPath(pluginDirectory);
+//   //   // const configPath = pluginUtils.getConfigPath(pluginDirectory);
 
-const initialLoadPlugins = (pluginFolder) => {
-  const result = [];
-  const pluginFolders = helpers.getDirectories(pluginFolder);
+//   //   // plugin.parentFolder = pluginDirectory;
+//   //   // plugin.index = pluginUtils.setIndex(indexPath);
 
-  for (let pluginFolder of pluginFolders) {
-    const plugin = {};
-    const indexPath = pluginUtils.getIndexPath(pluginFolder);
-    const configPath = pluginUtils.getConfigPath(pluginFolder);
+//   //   // pluginUtils.resolveConfig(plugin, configPath);
 
-    plugin.parentFolder = pluginFolder;
-    plugin.index = pluginUtils.setIndex(indexPath);
+//   //   // result.push(plugin);
+//   // }
 
-    pluginUtils.resolveConfig(plugin, configPath);
+//   // result.forEach((plugin) => {
+//   //   pluginUtils.loadUsing(plugin);
+//   // });
 
-    result.push(plugin);
-  }
+//   // pluginMap = result;
+// };
 
-  result.forEach((plugin) => {
-    pluginUtils.loadUsing(plugin);
-  });
+// const reloadPlugins = () => {
+//   const alteredPlugins = [];
+//   const plugins = [];
 
-  pluginMap = result;
-};
+//   pluginMap.forEach((plugin) => {
+//     if (!pluginUtils.stillExists(plugin)) return;
+//     const indexChangedState = pluginUtils.hasIndexChanged(plugin);
+//     const configChangedState = pluginUtils.hasConfigChanged(plugin);
 
-const reloadPlugins = () => {
-  const alteredPlugins = [];
-  const plugins = [];
+//     if (indexChangedState) {
+//       plugin.index = pluginUtils.setIndex(plugin.index.path);
+//     }
 
-  pluginMap.forEach((plugin) => {
-    if (!pluginUtils.stillExists(plugin)) return;
-    const indexChangedState = pluginUtils.hasIndexChanged(plugin);
-    const configChangedState = pluginUtils.hasConfigChanged(plugin);
+//     switch (configChangedState) {
+//       case 'removed':
+//         // plugin.config = undefined;
+//         // break;
+//       case 'added':
+//       case 'changed':
+//         pluginUtils.resolveConfig(
+//           plugin,
+//           pluginUtils.getConfigPath(plugin.parentFolder)
+//         );
+//         break;
+//       case 'unchanged':
+//       default:
+//         break;
+//     }
 
-    if (indexChangedState) {
-      plugin.index = pluginUtils.setIndex(plugin.index.path);
-    }
+//     if (indexChangedState || configChangedState !== 'unchanged') {
+//       pluginUtils.events.off(plugin.guid);
+//       alteredPlugins.push(plugin);
+//     } else {
+//       plugins.push(plugin);
+//     }
+//   });
 
-    switch (configChangedState) {
-      case 'removed':
-        // plugin.config = undefined;
-        // break;
-      case 'added':
-      case 'changed':
-        pluginUtils.resolveConfig(
-          plugin,
-          pluginUtils.getConfigPath(plugin.parentFolder)
-        );
-        break;
-      case 'unchanged':
-      default:
-        break;
-    }
+//   alteredPlugins.forEach((plugin) => {
+//     pluginUtils.loadUsing(plugin);
+//     plugins.push(plugin);
+//   });
 
-    if (indexChangedState || configChangedState !== 'unchanged') {
-      pluginUtils.events.off(plugin.guid);
-      alteredPlugins.push(plugin);
-    } else {
-      plugins.push(plugin);
-    }
-  });
+//   pluginMap = plugins;
+// };
 
-  alteredPlugins.forEach((plugin) => {
-    pluginUtils.loadUsing(plugin);
-    plugins.push(plugin);
-  });
-
-  pluginMap = plugins;
-};
-
-module.exports = (pluginFolder) => {
-  // TODO: Check for at least one plugin
-  // TODO: Error handling
-  // TODO: Logging
-
-  if (pluginMap.length === 0) {
-    initialLoadPlugins(pluginFolder);
-    return;
-  }
-
-  // Check what plugins have changed - collect the ones that need to be reloaded
-  reloadPlugins();
+module.exports = (pluginDirectory, disablePluginHotReloading) => {
+  // // TODO: Check for at least one plugin
+  // // TODO: Error handling
+  // // TODO: Logging
+  return helpers.getDirectories(pluginDirectory)
+    .then(pluginDirectories => {
+      pluginDirectories.forEach(directory => {
+        // TODO: Ignore folders that start with underscore (disabled)
+        pluginManager.addPlugin(directory);
+      });
+    }).then(() => {
+      if (disablePluginHotReloading) return;
+      chokidar.watch(pluginDirectory, {
+        ignoreInitial: true,
+        followSymlinks: false,
+        ignorePermissionErrors: true,
+        depth: 1
+      }).on('ready', () => {
+        // TODO: Logging
+        console.log('Plugin-system watching for changes');
+      }).on('error', error => {
+        // TODO: Logging
+        console.log('error', error);
+      }).on('addDir', directory => {
+        // TODO: Ignore folders that start with underscore (disabled)
+        pluginManager.addPlugin(pathing.resolve(directory));
+      }).on('unlinkDir', directory => {
+        pluginManager.removePlugin(pathing.resolve(directory));
+      });
+    });
 };

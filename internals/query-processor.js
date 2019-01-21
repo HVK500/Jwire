@@ -12,8 +12,6 @@ module.exports = async (keyPath, expectedValue, callback) => {
     expectedValue: expectedValue
   };
 
-  pluginLoader(config.input.pluginFolder);
-
   const resultBuilder = new helpers.objectBuilder();
 
   pluginEvent.emit('onBeforeQueryStart', config.input.sourceFolder, inputs);

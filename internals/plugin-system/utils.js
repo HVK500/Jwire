@@ -3,26 +3,24 @@ const pathing = require('path');
 const nanoevents = require('nanoevents');
 const unbindAll = require('nanoevents/unbind-all');
 const helpers = require('../helpers');
-const pluginBase = require('./base');
+const pluginBase = require('./plugin-base');
 const pluginEventsEmitter = new nanoevents();
 const pluginEventsUnbindCollection = {}; // { pluginId: function[] }
 
-const assignGuid = (plugin) => {
-  const s4 = () => Math.floor((1 + Math.random()) * 0x10000)
-                    .toString(16)
-                    .substring(1);
-
-  plugin.guid = s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-};
-
 module.exports = {
+  createGuid: () => {
+    const s4 = () => Math.floor((1 + Math.random()) * 0x10000)
+                      .toString(16)
+                      .substring(1);
+
+    return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
+  },
   events: {
     clear: () => {
       unbindAll(pluginEventsEmitter);
       pluginEventsUnbindCollection = {};
     },
     emit: (id, ...args) => {
-      helpers.getLogger(helpers.getLoggerContext()).debug(`System -> to -> Plugin: "${id}"`);
       pluginEventsEmitter.emit(id, ...args);
     },
     off: (guid) => {
@@ -72,7 +70,10 @@ module.exports = {
       plugin.config = module.exports.setConfig(configPath);
     }
   },
-  setConfig: (path) => {
+  removeFromRequireCache: (modulePath) => {
+    require.cache[require.resolve(modulePath)] = undefined;
+  },
+  setConfig: (path) => { // setIndex
     const content = helpers.readFile(path, true);
     return {
       enabled: (content.enabled == null ? true : content.enabled),
@@ -81,7 +82,7 @@ module.exports = {
       timeChanged: fs.statSync(path).mtime.getTime()
     };
   },
-  setIndex: (path) => {
+  setIndex: (path) => { // setIndex
     require.cache[require.resolve(path)] = undefined;
 
     return {
@@ -90,7 +91,7 @@ module.exports = {
       timeChanged: fs.statSync(path).mtime.getTime()
     };
   },
-  stillExists: (plugin) => {
+  stillExists: (plugin) => { // requiredFilesExists
     return fs.existsSync(plugin.parentFolder) && fs.existsSync(plugin.index.path);
   },
   utils: {

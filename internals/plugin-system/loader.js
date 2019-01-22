@@ -76,14 +76,13 @@ const pluginUtils = require('./utils');
 //   pluginMap = plugins;
 // };
 
-module.exports = (pluginDirectory, disablePluginHotReloading) => {
+module.exports = (pluginDirectory, disablePluginHotReloading = false) => {
   // // TODO: Check for at least one plugin
   // // TODO: Error handling
   // // TODO: Logging
   return helpers.getDirectories(pluginDirectory)
-    .then(pluginDirectories => {
-      pluginDirectories.forEach(directory => {
-        // TODO: Ignore folders that start with underscore (disabled)
+    .then((pluginDirectories) => {
+      pluginDirectories.forEach((directory) => {
         pluginManager.addPlugin(directory);
       });
     }).then(() => {
@@ -96,13 +95,12 @@ module.exports = (pluginDirectory, disablePluginHotReloading) => {
       }).on('ready', () => {
         // TODO: Logging
         console.log('Plugin-system watching for changes');
-      }).on('error', error => {
+      }).on('error', (error) => {
         // TODO: Logging
         console.log('error', error);
-      }).on('addDir', directory => {
-        // TODO: Ignore folders that start with underscore (disabled)
+      }).on('addDir', (directory) => {
         pluginManager.addPlugin(pathing.resolve(directory));
-      }).on('unlinkDir', directory => {
+      }).on('unlinkDir', (directory) => {
         pluginManager.removePlugin(pathing.resolve(directory));
       });
     });

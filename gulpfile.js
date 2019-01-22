@@ -7,8 +7,9 @@ gulp.task('ui:query', async () => {
   console.log('Press ctrl + c to cancel');
   const port = Number(readline.question('Port: (Defaults to 3000) ') || 3000);
 
-  await pluginLoader(config.input.pluginFolder, false);
-  require('./frontend/server/web-api')(port);
+  pluginLoader(config.input.pluginFolder).then(() => {
+    require('./frontend/server/web-api')(port);
+  });
 });
 
 gulp.task('query', async () => {
@@ -21,16 +22,17 @@ gulp.task('query', async () => {
     return;
   }
 
-  await pluginLoader(config.input.pluginFolder, true);
-  require('./internals/query-processor')(keyPath, expectedValue);
-});
+  pluginLoader(config.input.pluginFolder, true).then(() => {
+    require('./internals/query-processor')(keyPath, expectedValue);
+  });
 
 gulp.task('debug', async () => {
-  await pluginLoader(config.input.pluginFolder, true);
-  await require('./internals/query-processor')(
-    '',
-    ''
-  );
+  pluginLoader(config.input.pluginFolder).then(() => {
+    await require('./internals/query-processor')(
+      '',
+      ''
+    );
+  });
 });
 
 gulp.task('clean', () => {

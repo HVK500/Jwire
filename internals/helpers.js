@@ -5,7 +5,7 @@ const mkdirp = require('mkdirp');
 const logWrapper = require('log-wrapper');
 const config = require('../config.json');
 
-let logClient = null;
+let logger = null;
 const createPath = (path) => {
   const directory = pathing.dirname(path);
   // If the directory does not exist, create it
@@ -24,19 +24,30 @@ module.exports = {
     const timeStamp = new Date();
     return `${timeStamp.getFullYear()}-${timeStamp.getMonth() + 1}-${timeStamp.getDate()}-${timeStamp.getHours()}-${timeStamp.getMinutes()}`;
   },
+  fileExists: (filePath) => {
+    return new Promise((resolve, reject) => {
+      fs.access(filePath, fs.constants.F_OK | fs.constants.R_OK, (error) => {
+        if (error) reject(error);
+        resolve();
+      });
+    });
+  },
   getConfig: () => {
     return config;
   },
   getDirectories: (path) => {
     return new Promise((resolve, reject) => {
       path = pathing.resolve(path);
-      fs.readdir(path, { encoding: 'utf8', withFileTypes: true },
+      fs.readdir(path, {
+          encoding: 'utf8',
+          withFileTypes: true
+        },
         (error, items) => {
           if (error) reject(`There was a problem reading directory - ${path}. ${error}`);
           resolve(
             items.filter(item =>
               item.isDirectory() && !(/\.git$/.test(item.name))).map(item =>
-                pathing.join(path, item.name))
+              pathing.join(path, item.name))
           );
         }
       );
@@ -51,23 +62,25 @@ module.exports = {
   getFilePaths: async (sourceFolder, search) => {
     return await tinyGlob(
       search, {
-      cwd: sourceFolder,
-      filesOnly: true,
-      absolute: true
-    });
+        cwd: sourceFolder,
+        filesOnly: true,
+        absolute: true
+      });
   },
-  getLogger: (context) => { // TODO: Redo this implemenation
-    if (context) {
-      logClient = logWrapper(context);
+  getLogger: (context) => {
+    if (!logger && !context) {
+      logger = logWrapper(module.exports.getLoggerContext());
+    } else if (context) {
+      logger = logWrapper(context);
     }
 
-    return logClient;
+    return logger;
   },
-  getLoggerContext: () => { // TODO: Redo this implemenation
+  getLoggerContext: () => {
     if (!config.logging) return {};
 
     const base = (level) => {
-      return (message, ...args) => console.log(`[${level}]`, message, (args.length !== 0 ? JSON.stringify(args) : ''))
+      return (message, origin = 'SYSTEM', ...args) => console.log(`(${origin})`, `[${level}]`, message, (args.length !== 0 ? JSON.stringify(args) : ''))
     };
 
     // TODO: Use chalk to colour messages
@@ -119,14 +132,17 @@ module.exports = {
   },
   readFile: (path, parse) => {
     return new Promise((resolve, reject) => {
-        path = pathing.resolve(path);
-        fs.readFile(path, { encoding: 'utf8', flag: 'r' },
-          (err, content) => {
-            if (err) reject(`There was a problem reading - ${path}. ${err}`);
-            content = content.replace(/^\uFEFF/, ''); // Remove BOM from resulting string
-            resolve(!parse ? content : JSON.parse(content));
-          }
-        );
+      path = pathing.resolve(path);
+      fs.readFile(path, {
+          encoding: 'utf8',
+          flag: 'r'
+        },
+        (err, content) => {
+          if (err) reject(`There was a problem reading - ${path}. ${err}`);
+          content = content.replace(/^\uFEFF/, ''); // Remove BOM from resulting string
+          resolve(!parse ? content : JSON.parse(content));
+        }
+      );
     });
   },
   tryParseValue: (value) => {

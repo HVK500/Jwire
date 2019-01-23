@@ -99,7 +99,7 @@ module.exports = {
   // },
   utils: {
     fileSystem: fs,
-    getLogger: helpers.getLogger,
+    // getLogger: helpers.getLogger,
     loopObject: helpers.loopObject,
     objectBuilder: helpers.objectBuilder,
     pathing: pathing,

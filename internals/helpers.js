@@ -1,24 +1,18 @@
-const fs = require('fs');
-const tinyGlob = require('tiny-glob');
-const pathing = require('path');
-const mkdirp = require('mkdirp');
-const logWrapper = require('log-wrapper');
 const config = require('../config.json');
-
-let logger = null;
-const createPath = (path) => {
-  const directory = pathing.dirname(path);
-  // If the directory does not exist, create it
-  mkdirp.sync(directory);
-
-  // Path flows straight through so it can be used to chain
-  return path;
-};
+const fs = require('fs');
+const mkdirp = require('mkdirp');
+const pathing = require('path');
+const tinyGlob = require('tiny-glob');
+const { create, commonFormats, commonTransports } = require('./logger');
 
 module.exports = {
-  dateDiff: (d1, d2) => {
-    // d1 is larger date, d2 is smaller date
-    return Math.ceil(Math.abs(d1.getTime() - d2.getTime()));
+  createPath: (path) => {
+    const directory = pathing.dirname(path);
+    // If the directory does not exist, create it
+    mkdirp.sync(directory);
+
+    // Path flows straight through so it can be used to chain
+    return path;
   },
   formatTimeStamp: () => {
     const timeStamp = new Date();
@@ -65,35 +59,15 @@ module.exports = {
         cwd: sourceFolder,
         filesOnly: true,
         absolute: true
-      });
+      }
+    );
   },
-  getLogger: (context) => {
-    if (!logger && !context) {
-      logger = logWrapper(module.exports.getLoggerContext());
-    } else if (context) {
-      logger = logWrapper(context);
-    }
-
-    return logger;
-  },
-  getLoggerContext: () => {
-    if (!config.logging) return {};
-
-    const base = (level) => {
-      return (message, origin = 'SYSTEM', ...args) => console.log(`(${origin})`, `[${level}]`, message, (args.length !== 0 ? JSON.stringify(args) : ''))
-    };
-
-    // TODO: Use chalk to colour messages
-
-    return {
-      trace: base('TRACE'),
-      info: base('INFO'),
-      warn: base('WARN'),
-      error: base('ERROR'),
-      debug: base('DEBUG'),
-      fatal: base('FATAL')
-    };
-  },
+  log: create({
+    transports: [
+      commonTransports.console(commonFormats.systemConsole()),
+      commonTransports.systemFile
+    ],
+  }),
   loopObject: (parent, callback) => {
     for (let [key, value] of Object.entries(parent)) {
       callback(key, value, parent);
@@ -157,7 +131,7 @@ module.exports = {
       path = pathing.resolve(path);
       content = !parse ? content : JSON.stringify(content, null, 2);
 
-      fs.writeFile(createPath(path), content,
+      fs.writeFile(module.exports.createPath(path), content,
         (error) => {
           if (error) reject(`There was a problem writing file - ${path}. ${error}`);
           resolve();

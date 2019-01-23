@@ -3,33 +3,33 @@ const pathing = require('path');
 const chokidar = require('chokidar');
 const manager = require('./manager');
 const utils = require('./utils');
-const logger = utils.utils.getLogger();
+const { log } = require('../helpers');
 
-const watcher = (filePath) => {
-  // TODO: Create a watcher that looks for changes to the files (index and config)
-  chokidar.watch(filePath, {
-    ignoreInitial: true,
-    followSymlinks: false,
-    ignorePermissionErrors: true,
-    depth: 1
-  }).on('ready', () => {
-    // TODO: Logging
-    console.log(`Plugin watching for changes.`);
-  }).on('error', error => {
-    // TODO: Logging
-    console.log('error', error);
-  }).on('add', directory => {
-    // TODO: Config populate empty config object.
-    // pathing.resolve(directory)
-  }).on('unlink', directory => {
-    // TODO: Index removed dispose of plugin.
-    // TODO: Config removed empty config object.
-    // pathing.resolve(directory)
-  }).on('change', directory => {
-    // TODO: Reload the file
-    // pathing.resolve(directory)
-  });
-};
+// const watcher = (filePath) => {
+//   // TODO: Create a watcher that looks for changes to the files (index and config)
+//   chokidar.watch(filePath, {
+//     ignoreInitial: true,
+//     followSymlinks: false,
+//     ignorePermissionErrors: true,
+//     depth: 1
+//   }).on('ready', () => {
+//     // TODO: Logging
+//     console.log(`Plugin watching for changes.`);
+//   }).on('error', error => {
+//     // TODO: Logging
+//     console.log('error', error);
+//   }).on('add', directory => {
+//     // TODO: Config populate empty config object.
+//     // pathing.resolve(directory)
+//   }).on('unlink', directory => {
+//     // TODO: Index removed dispose of plugin.
+//     // TODO: Config removed empty config object.
+//     // pathing.resolve(directory)
+//   }).on('change', directory => {
+//     // TODO: Reload the file
+//     // pathing.resolve(directory)
+//   });
+// };
 
 module.exports = function (baseDirectory) {
   this.parentFolder = baseDirectory;
@@ -59,7 +59,7 @@ module.exports = function (baseDirectory) {
         config.path = filePath;
         config.content = content;
       }, (errorMessage) => {
-        logger.error(`Encountered an issue while reading Config file within the "${this.name}" plugin: ${errorMessage}`);
+        log.error(`Encountered an issue while reading Config file within the "${this.name}" plugin: ${errorMessage}`);
         // TODO: Use empty config
       });
   };
@@ -71,46 +71,46 @@ module.exports = function (baseDirectory) {
   this.resolveIndex();
 
   // TODO: Create a watcher that looks for changes to the files (index and config)
-  chokidar.watch(this.indexPath, {
+  chokidar.watch(this.index.path, {
     ignoreInitial: true,
     awaitWriteFinish: true,
     followSymlinks: false,
     ignorePermissionErrors: true,
     depth: 1
   }).on('ready', () => {
-    logger.info(`Watching for Index file changes in the "${this.name}" plugin.`);
+    log.info(`Watching for Index file changes in the "${this.name}" plugin.`);
   }).on('error', error => {
-    logger.error(`Encountered an issue while watching the Index file in the "${this.name}" plugin, proceeding to dispose of plugin: ${error}`);
+    log.error(`Encountered an issue while watching the Index file in the "${this.name}" plugin, proceeding to dispose of plugin: ${error}`);
     this.dispose();
   }).on('unlink', () => {
-    logger.info(`Detected the deletion of the Index file in the "${this.name}" plugin, proceeding to dispose of plugin.`);
+    log.info(`Detected the deletion of the Index file in the "${this.name}" plugin, proceeding to dispose of plugin.`);
     this.dispose();
   }).on('change', () => {
-    logger.info(`Detected a change to the Index file in the "${this.name}" plugin, proceeding to reload module.`);
+    log.info(`Detected a change to the Index file in the "${this.name}" plugin, proceeding to reload module.`);
     // TODO: Reload the file
   });
 
-  chokidar.watch(this.configPath, {
+  chokidar.watch(this.config.path, {
     ignoreInitial: true,
     awaitWriteFinish: true,
     followSymlinks: false,
     ignorePermissionErrors: true,
     depth: 1
   }).on('ready', () => {
-    logger.info(`Watching for Config file changes in the "${this.name}" plugin.`);
+    log.info(`Watching for Config file changes in the "${this.name}" plugin.`);
   }).on('error', error => {
-    logger.error(`Encountered an issue while watching the Config file in the "${this.name}" plugin: ${error}`);
+    log.error(`Encountered an issue while watching the Config file in the "${this.name}" plugin: ${error}`);
   }).on('add', () => {
     // pathing.resolve(directory)
     // TODO: Config populate empty config object.
-    logger.info(`Detected the addition of the Config file in the "${this.name}" plugin, proceeding to load config.`);
+    log.info(`Detected the addition of the Config file in the "${this.name}" plugin, proceeding to load config.`);
   }).on('unlink', () => {
     // pathing.resolve(directory)
-    logger.info(`Detected the deletion of the Config file in the "${this.name}" plugin, proceeding to use default config.`);
+    log.info(`Detected the deletion of the Config file in the "${this.name}" plugin, proceeding to use default config.`);
     // TODO: Config removed empty config object.
   }).on('change', () => {
     // pathing.resolve(directory)
-    logger.info(`Detected a change to the Config file in the "${this.name}" plugin, proceeding to reload config.`);
+    log.info(`Detected a change to the Config file in the "${this.name}" plugin, proceeding to reload config.`);
     // TODO: Reload the file
   });
 };

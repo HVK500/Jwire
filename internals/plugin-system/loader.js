@@ -1,8 +1,7 @@
 const chokidar = require('chokidar');
 const pathing = require('path');
-const helpers = require('../helpers');
+const { getDirectories, log } = require('../helpers');
 const pluginManager = require('./manager');
-const pluginUtils = require('./utils');
 
 // 1. load plugins found
 // 2. create a watcher that only checks for new plugin folders
@@ -80,7 +79,7 @@ module.exports = (pluginDirectory, disablePluginHotReloading = false) => {
   // // TODO: Check for at least one plugin
   // // TODO: Error handling
   // // TODO: Logging
-  return helpers.getDirectories(pluginDirectory)
+  return getDirectories(pluginDirectory)
     .then((pluginDirectories) => {
       pluginDirectories.forEach((directory) => {
         pluginManager.addPlugin(directory);
@@ -94,10 +93,10 @@ module.exports = (pluginDirectory, disablePluginHotReloading = false) => {
         depth: 1
       }).on('ready', () => {
         // TODO: Logging
-        console.log('Plugin-system watching for changes');
+        log.info('Plugin-system watching for changes');
       }).on('error', (error) => {
         // TODO: Logging
-        console.log('error', error);
+        log.error('error', error);
       }).on('addDir', (directory) => {
         pluginManager.addPlugin(pathing.resolve(directory));
       }).on('unlinkDir', (directory) => {

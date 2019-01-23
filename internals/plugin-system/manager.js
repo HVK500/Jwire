@@ -1,19 +1,20 @@
 const PluginModel = require('./plugin-model');
-const helpers = require('../helpers');
+const { fileExists, log } = require('../helpers');
 const pluginUtils = require('./utils');
-const logger = helpers.getLogger();
+
+
 const container = new Map();
 
 module.exports = {
   addPlugin: (directory) => {
     // TODO: Ignore folders that start with underscore (disabled)
 
-    helpers.fileExists(pluginUtils.getIndexPath(directory))
+    fileExists(pluginUtils.getIndexPath(directory))
       .then(() => {
         const plugin = new PluginModel(directory);
         container.set(plugin.guid, plugin);
       }).catch((error) => {
-        logger.error(`Failed to create plugin due to ${error}`);
+        log.error(`Failed to create plugin - ${error}`);
       });
   },
   // getPlugins: () => {
@@ -23,8 +24,7 @@ module.exports = {
     const plugin = container.get(parentFolder);
 
     if (plugin == null) {
-      // TODO: add error message
-      logger.error();
+      log.warn('Plugin does not exist in pool, skipping removal.');
       return;
     }
 

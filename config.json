@@ -1,5 +1,15 @@
 {
-  "logging": true,
+  "logging": {
+    "console": {
+      "enabled": true,
+      "levels": [ "error" ]
+    },
+    "file": {
+      "enabled": true,
+      "path": "./logs",
+      "levels": [ "error" ]
+    }
+  },
   "input": {
     "pluginFolder": "./plugins",
     "searchCriteria": "",

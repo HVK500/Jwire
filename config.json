@@ -1,13 +1,11 @@
 {
   "logging": {
     "console": {
-      "enabled": true,
-      "levels": [ "error" ]
+      "enabled": true
     },
     "file": {
-      "enabled": true,
-      "path": "./logs",
-      "levels": [ "error" ]
+      "enabled": false,
+      "path": "./logs"
     }
   },
   "input": {

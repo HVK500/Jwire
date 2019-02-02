@@ -1,11 +1,25 @@
 const config = require('../config.json');
 const fs = require('fs');
 const mkdirp = require('mkdirp');
+const watcher = require('chokidar');
 const pathing = require('path');
 const tinyGlob = require('tiny-glob');
 const { create, commonFormats, commonTransports } = require('./logger');
 
 module.exports = {
+  attachWatcher: (path, listeners) => {
+    const result = watcher.watch(path, {
+      ignoreInitial: true,
+      awaitWriteFinish: true,
+      followSymlinks: false,
+      ignorePermissionErrors: true,
+      depth: 1
+    });
+
+    module.exports.loopObject(listeners, (eventName, callback) => {
+      result.on(eventName, callback);
+    });
+  },
   createPath: (path) => {
     const directory = pathing.dirname(path);
     // If the directory does not exist, create it
@@ -26,25 +40,35 @@ module.exports = {
       });
     });
   },
-  getConfig: () => {
+  getSystemConfig: () => {
     return config;
   },
   getDirectories: (path) => {
     return new Promise((resolve, reject) => {
       path = pathing.resolve(path);
-      fs.readdir(path, {
-          encoding: 'utf8',
-          withFileTypes: true
-        },
-        (error, items) => {
-          if (error) reject(`There was a problem reading directory - ${path}. ${error}`);
-          resolve(
-            items.filter(item =>
-              item.isDirectory() && !(/\.git$/.test(item.name))).map(item =>
-              pathing.join(path, item.name))
+      module.exports.fileExists(path)
+        .then(() => {
+          fs.readdir(path, {
+              encoding: 'utf8',
+              withFileTypes: true
+            },
+            (error, items) => {
+              if (error) {
+                reject(`There was a problem reading directory - "${path}". ${error}`);
+              } else if (items.length === 0) {
+                reject(`No plugins in directory - "${path}", there should be at least one plugin to execute a query.`);
+              }
+
+              resolve(
+                items.filter((item) =>
+                  item.isDirectory() && !(/\.git$/.test(item.name))).map((item) =>
+                  pathing.join(path, item.name))
+              );
+            }
           );
-        }
-      );
+        }).catch((reason) => {
+          reject(`Directory does not exist - ${reason}`);
+        });
     });
   },
   getFileExtension: (path) => {

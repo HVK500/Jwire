@@ -1,19 +1,15 @@
 const config = require('../config.json');
 const pathing = require('path');
 const winston = require('winston');
-const { createLogger, format, transports } = winston;
 const { align, combine, colorize, timestamp, label, printf } = format;
+const { createLogger, format, transports } = winston;
 
 const genericConsoleFormatter = (origin, callback) => {
+  const format = combine(
+  );
+
   return combine(
-    colorize({
-      colors: {
-        error: 'darkred',
-        warn: 'yellow',
-        info: 'cyan',
-        debug: 'lightgreen'
-      }
-    }),
+    colorize(),
     label({ origin: origin }),
     timestamp(),
     align(),

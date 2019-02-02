@@ -1,106 +1,35 @@
-const chokidar = require('chokidar');
 const pathing = require('path');
-const { getDirectories, log } = require('../helpers');
 const pluginManager = require('./manager');
-
-// 1. load plugins found
-// 2. create a watcher that only checks for new plugin folders
-// - plugins will remove themselves from the plugin pool
-
-// pluginSystem.registerLogger(helpers.getLoggerContext());
-
-// const initialLoadPlugins = (pluginFolder) => {
-//   // for (let pluginDirectory of pluginDirectories) {
-//   //   // const plugin = {};
-//   //   // const indexPath = pluginUtils.getIndexPath(pluginDirectory);
-//   //   // const configPath = pluginUtils.getConfigPath(pluginDirectory);
-
-//   //   // plugin.parentFolder = pluginDirectory;
-//   //   // plugin.index = pluginUtils.setIndex(indexPath);
-
-//   //   // pluginUtils.resolveConfig(plugin, configPath);
-
-//   //   // result.push(plugin);
-//   // }
-
-//   // result.forEach((plugin) => {
-//   //   pluginUtils.loadUsing(plugin);
-//   // });
-
-//   // pluginMap = result;
-// };
-
-// const reloadPlugins = () => {
-//   const alteredPlugins = [];
-//   const plugins = [];
-
-//   pluginMap.forEach((plugin) => {
-//     if (!pluginUtils.stillExists(plugin)) return;
-//     const indexChangedState = pluginUtils.hasIndexChanged(plugin);
-//     const configChangedState = pluginUtils.hasConfigChanged(plugin);
-
-//     if (indexChangedState) {
-//       plugin.index = pluginUtils.setIndex(plugin.index.path);
-//     }
-
-//     switch (configChangedState) {
-//       case 'removed':
-//         // plugin.config = undefined;
-//         // break;
-//       case 'added':
-//       case 'changed':
-//         pluginUtils.resolveConfig(
-//           plugin,
-//           pluginUtils.getConfigPath(plugin.parentFolder)
-//         );
-//         break;
-//       case 'unchanged':
-//       default:
-//         break;
-//     }
-
-//     if (indexChangedState || configChangedState !== 'unchanged') {
-//       pluginUtils.events.off(plugin.guid);
-//       alteredPlugins.push(plugin);
-//     } else {
-//       plugins.push(plugin);
-//     }
-//   });
-
-//   alteredPlugins.forEach((plugin) => {
-//     pluginUtils.loadUsing(plugin);
-//     plugins.push(plugin);
-//   });
-
-//   pluginMap = plugins;
-// };
+const { attachWatcher, getDirectories, log } = require('../helpers');
 
 module.exports = (pluginDirectory, disablePluginHotReloading = false) => {
-  // // TODO: Check for at least one plugin
-  // // TODO: Error handling
-  // // TODO: Logging
   return getDirectories(pluginDirectory)
     .then((pluginDirectories) => {
-      pluginDirectories.forEach((directory) => {
-        pluginManager.addPlugin(directory);
+      Promise.all(pluginDirectories.map((directory) => {
+        return pluginManager.addPlugin(directory);
+      })).then(() => {
+        if (pluginManager.numberOfPluginsLoaded() === 0) {
+          throw `There are no plugins loaded, you need at least one plugin to execute a query.`;
+        }
+      }).then(() => {
+        // Avoid watching the plugins directory if the system will be used once
+        if (disablePluginHotReloading) return;
+        attachWatcher(pluginDirectory, {
+          ready: () => {
+            log.info('Plugin-system watching for changes');
+          },
+          error: (error) => {
+            log.error('error', error);
+          },
+          addDir: (directory) => {
+            log.info(`Detected that addition of a plugin directory (${directory}), proceeding to load plugin.`);
+            pluginManager.addPlugin(pathing.resolve(directory));
+          },
+          unlinkDir: (directory) => {
+            log.info(`Detected that deletion of a plugin directory (${directory}), proceeding to remove plugin.`);
+            pluginManager.removePlugin(pathing.resolve(directory));
+          }
+        });
       });
-    }).then(() => {
-      if (disablePluginHotReloading) return;
-      chokidar.watch(pluginDirectory, {
-        ignoreInitial: true,
-        followSymlinks: false,
-        ignorePermissionErrors: true,
-        depth: 1
-      }).on('ready', () => {
-        // TODO: Logging
-        log.info('Plugin-system watching for changes');
-      }).on('error', (error) => {
-        // TODO: Logging
-        log.error('error', error);
-      }).on('addDir', (directory) => {
-        pluginManager.addPlugin(pathing.resolve(directory));
-      }).on('unlinkDir', (directory) => {
-        pluginManager.removePlugin(pathing.resolve(directory));
-      });
-    });
+    }).catch((reason) => log.error(reason));
 };

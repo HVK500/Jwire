@@ -1,9 +1,8 @@
 const pathing = require('path');
 const pluginEvent = require('./plugin-system/utils').events;
-const pluginLoader = require('./plugin-system/loader');
 const queryEngine = require('../internals/query-engine');
-const helpers = require('../internals/helpers');
-const config = helpers.getConfig();
+const { getSystemConfig } = require('../internals/helpers');
+const config = getSystemConfig();
 
 module.exports = async (keyPath, expectedValue, callback) => {
   expectedValue = !expectedValue ? '*' : expectedValue;

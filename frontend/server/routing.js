@@ -1,12 +1,12 @@
 const queryProcessor = require('../../internals/query-processor');
-const helpers = require('../../internals/helpers');
+const { loopObject, readFile, getFileExtension } = require('../../internals/helpers');
 
 module.exports = {
   setupResourceRoutes: (resourceMap, api) => {
-    helpers.loopObject(resourceMap, (type, assetCollection) => {
-      helpers.loopObject(assetCollection, (id, path) => {
-        helpers.readFile(path).then(content => {
-          const fileExtension = helpers.getFileExtension(path);
+    loopObject(resourceMap, (type, assetCollection) => {
+      loopObject(assetCollection, (id, path) => {
+        readFile(path).then(content => {
+          const fileExtension = getFileExtension(path);
 
           if (type !== 'pages') {         // other resource
             route = `/${type}/${id}`;

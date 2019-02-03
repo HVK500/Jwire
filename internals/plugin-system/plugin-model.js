@@ -2,7 +2,7 @@
 const pathing = require('path');
 const { attachFileSystemWatcher, removeFileSystemWatcher, readFile, log, fileExists } = require('../helpers');
 const pluginEvent = require('./events');
-const { getIndexPath, getConfigPath, utils } = require('./utils');
+const { getIndexPath, getConfigPath, utils, generateGuid } = require('./utils');
 
 const indexFailed = (plugin, reason = '') => {
   return `The "${plugin.name}" plugin failed to read index because it has was not integrated correctly. ${reason}`;
@@ -21,7 +21,7 @@ const setConfig = (plugin) => {
       readFile(path, true)
         .then((content) => {
           plugin.config.enabled = (content.enabled == null ? true : content.enabled);
-          plugin.config.path = filePath;
+          plugin.config.path = path;
           plugin.config.content = content;
         })
       // .catch((reason) => {
@@ -152,7 +152,7 @@ const removeFileWatchers = (plugin) => {
 
 module.exports = function (pluginDirectory) {
   this.parentFolder = pluginDirectory;
-  this.id = +new Date;
+  this.id = generateGuid();
   setName(this);
 
   this.initialize = (allowHotReload) => {

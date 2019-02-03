@@ -138,7 +138,7 @@ module.exports = {
           flag: 'r'
         },
         (err, content) => {
-          if (err) reject(`There was a problem reading - ${path}. ${err}`);
+          if (err || !content) reject(`There was a problem reading - ${path}. ${err}`);
           content = content.replace(/^\uFEFF/, ''); // Remove BOM from resulting string
           resolve(!parse ? content : JSON.parse(content));
         }

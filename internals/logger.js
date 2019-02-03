@@ -1,29 +1,29 @@
 const config = require('../config.json');
 const pathing = require('path');
 const winston = require('winston');
-const { align, combine, colorize, timestamp, label, printf } = format;
 const { createLogger, format, transports } = winston;
+const { align, combine, colorize, timestamp, label, printf } = format;
 
-const genericConsoleFormatter = (origin, callback) => {
-  const format = combine(
-  );
-
+const commonFormat = (origin, callback) => {
   return combine(
-    colorize(),
     label({ origin: origin }),
-    timestamp(),
+    timestamp({
+      format: 'DD-MM-YY HH:mm:ss'
+    }),
     align(),
     printf(callback)
   );
 };
 
-const genericFileFormatter = (origin, callback) => {
+const genericConsoleFormatter = (origin, callback) => {
   return combine(
-    label({ origin: origin }),
-    timestamp(),
-    align(),
-    printf(callback)
+    colorize(),
+    commonFormat(origin, callback)
   );
+};
+
+const genericFileFormatter = (origin, callback) => {
+  return commonFormat(origin, callback);
 };
 
 const messageFormat = (info, optionals) => {

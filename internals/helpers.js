@@ -7,7 +7,7 @@ const tinyGlob = require('tiny-glob');
 const { create, commonFormats, commonTransports } = require('./logger');
 
 module.exports = {
-  attachWatcher: (path, listeners) => {
+  attachFileSystemWatcher: (path, listeners) => {
     const result = watcher.watch(path, {
       ignoreInitial: true,
       awaitWriteFinish: true,
@@ -19,6 +19,8 @@ module.exports = {
     module.exports.loopObject(listeners, (eventName, callback) => {
       result.on(eventName, callback);
     });
+
+    return result;
   },
   createPath: (path) => {
     const directory = pathing.dirname(path);
@@ -90,7 +92,7 @@ module.exports = {
     transports: [
       commonTransports.console(commonFormats.systemConsole()),
       commonTransports.systemFile
-    ],
+    ]
   }),
   loopObject: (parent, callback) => {
     for (let [key, value] of Object.entries(parent)) {
@@ -141,6 +143,11 @@ module.exports = {
           resolve(!parse ? content : JSON.parse(content));
         }
       );
+    });
+  },
+  removeFileSystemWatcher: (...watchers) => {
+    watchers.forEach((watcher) => {
+      watcher.close();
     });
   },
   tryParseValue: (value) => {

@@ -3,4 +3,4 @@
 **/results
 **/plugins
 frontend/client/bundle\.js
-*.log
+**/logs

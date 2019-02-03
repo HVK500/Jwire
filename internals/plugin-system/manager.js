@@ -3,24 +3,41 @@ const { fileExists, log } = require('../helpers');
 const { getIndexPath } = require('./utils');
 
 const container = new Map();
+let hotReloading = true;
+
+const pluginFailed = (plugin, resolve) => {
+  return (reason) => {
+    log.warn(`Failed to create the "${plugin.name}" plugin. ${reason}`);
+    resolve();
+  }
+};
 
 module.exports = {
   addPlugin: (directory) => {
     // TODO: Ignore folders that start with underscore (disabled)
-
-    return fileExists(getIndexPath(directory))
-      .then(() => {
-        const plugin = new PluginModel(directory);
-        container.set(plugin.id, plugin);
-      }).catch((error) => {
-        log.error(`Failed to create plugin - ${error}`);
-      });
+    return new Promise((resolve, reject) => {
+      const plugin = new PluginModel(directory);
+      fileExists(getIndexPath(directory))
+        .then(() => {
+          plugin.initialize(hotReloading)
+            .then(() => {
+              container.set(plugin.id, plugin);
+              resolve();
+            }).catch(pluginFailed(plugin, resolve));
+        }).catch(pluginFailed(plugin, resolve));
+    });
   },
-  numberOfPluginsLoaded: () => {
-    return container.size;
+  hotReload: (disable) => {
+    hotReloading = !disable;
+    log.warn(`Plugin hot reloading has been ${hotReloading ? 'enabled' : 'disabled'}.`);
   },
-  removePlugin: (parentFolder) => {
-    const plugin = container.get(parentFolder);
+  ensureMinimumPluginsLoaded: () => {
+    if (container.size === 0) {
+      throw `There are no plugins loaded, you need at least one plugin to execute a query.`;
+    }
+  },
+  removePlugin: (id) => {
+    const plugin = container.get(id);
 
     if (plugin == null) {
       log.warn('Plugin does not exist in pool, skipping removal.');
@@ -29,5 +46,6 @@ module.exports = {
 
     plugin.dispose();
     container.delete(plugin.id);
+    module.exports.ensureMinimumPluginsLoaded();
   }
 };

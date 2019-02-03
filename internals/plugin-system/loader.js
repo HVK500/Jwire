@@ -1,19 +1,22 @@
 const pathing = require('path');
 const pluginManager = require('./manager');
-const { attachWatcher, getDirectories, log } = require('../helpers');
+const { attachFileSystemWatcher: attachWatcher, getDirectories, log } = require('../helpers');
 
-module.exports = (pluginDirectory, disablePluginHotReloading = false) => {
+const loaderFailed = (reason) => {
+  log.error(reason);
+};
+
+module.exports = (pluginDirectory, disablePluginHotReload = false) => {
+  pluginManager.hotReload(disablePluginHotReload);
   return getDirectories(pluginDirectory)
     .then((pluginDirectories) => {
       Promise.all(pluginDirectories.map((directory) => {
         return pluginManager.addPlugin(directory);
       })).then(() => {
-        if (pluginManager.numberOfPluginsLoaded() === 0) {
-          throw `There are no plugins loaded, you need at least one plugin to execute a query.`;
-        }
+        pluginManager.ensureMinimumPluginsLoaded();
       }).then(() => {
         // Avoid watching the plugins directory if the system will be used once
-        if (disablePluginHotReloading) return;
+        if (disablePluginHotReload) return;
         attachWatcher(pluginDirectory, {
           ready: () => {
             log.info('Plugin-system watching for changes');
@@ -30,6 +33,6 @@ module.exports = (pluginDirectory, disablePluginHotReloading = false) => {
             pluginManager.removePlugin(pathing.resolve(directory));
           }
         });
-      });
-    }).catch((reason) => log.error(reason));
+      }).catch(loaderFailed);
+    }).catch(loaderFailed);
 };

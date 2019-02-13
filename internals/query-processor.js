@@ -24,6 +24,6 @@ module.exports = async (keyPath, expectedValue, callback) => {
         true
       );
 
-      callback ? callback(queryResult) : null;
+      callback ? callback(queryResult) : null; // TODO: Address this callback chain
     });
 };

@@ -1,8 +1,8 @@
-const config = getSystemConfig();
 const gulp = require('gulp');
 const pluginLoader = require('./internals/plugin-system/loader');
 const readline = require('readline-sync');
 const { getSystemConfig } = require('./internals/helpers');
+const config = getSystemConfig();
 
 gulp.task('ui:query', () => {
   console.log('Press ctrl + c to cancel');
@@ -30,10 +30,7 @@ gulp.task('query', () => {
 
 gulp.task('debug', () => {
   pluginLoader(config.input.pluginFolder).then(async () => {
-    await require('./internals/query-processor')(
-      '',
-      ''
-    );
+    // Add debug code here
   });
 });
 

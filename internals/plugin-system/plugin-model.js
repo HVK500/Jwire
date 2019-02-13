@@ -1,8 +1,7 @@
-
+const events = require('../events');
 const pathing = require('path');
 const { attachFileSystemWatcher, removeFileSystemWatcher, readFile, log, fileExists } = require('../helpers');
-const pluginEvent = require('./events');
-const { getIndexPath, getConfigPath, utils, generateGuid } = require('./utils');
+const { getIndexPath, getConfigPath, utils, generateGuid } = require('./plugin-utils');
 
 const indexFailed = (plugin, reason = '') => {
   return `The "${plugin.name}" plugin failed to read index because it has was not integrated correctly. ${reason}`;
@@ -37,10 +36,6 @@ const setIndex = (plugin) => {
   plugin.index = plugin.index ? plugin.index : {};
   plugin.index.path = path;
   plugin.index.module = null;
-  //  = {
-  //   path: path,
-  //   module: null
-  // };
 
   return new Promise((resolve, reject) => {
     fileExists(path)
@@ -80,7 +75,7 @@ const subscribeEvents = (plugin) => {
     }
 
     new Map(Object.entries(eventRegister)).forEach((event, eventName) => {
-      pluginEvent.on(eventName, plugin.id, event);
+      events.on(eventName, plugin.id, event);
     });
 
     log.info(`Subscribed to events for the "${plugin.name}" plugin.`);
@@ -88,9 +83,9 @@ const subscribeEvents = (plugin) => {
 };
 
 const unsubscribeEvents = (plugin) => {
-  if (!pluginEvent.hasSubscribed(plugin.id)) return;
+  if (!events.hasSubscribed(plugin.id)) return;
 
-  pluginEvent.off(plugin.id);
+  events.off(plugin.id);
   log.info(`Unsubscribed from all events for the "${plugin.name}" plugin.`);
 };
 
@@ -99,7 +94,7 @@ const setupFileWatchers = (plugin, hotReload) => {
 
   const error = (error) => {
     log.error(`Encountered an issue while watching the Index file in the "${plugin.name}" plugin, proceeding to dispose of plugin: ${error}`);
-    require('./manager').removePlugin(plugin.id);
+    require('./plugin-manager').removePlugin(plugin.id);
   };
 
   // Create a watcher that looks for changes to the files index
@@ -160,7 +155,6 @@ module.exports = function (pluginDirectory) {
       .then(() => {
         setConfig(this)
           .then(() => {
-            // TODO: hook up plugins events
             setupFileWatchers(this, allowHotReload);
           }).then(() => {
             log.info(`Successfully initialized the "${this.name}" plugin.`);

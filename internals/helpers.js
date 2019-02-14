@@ -23,22 +23,29 @@ module.exports = {
     return result;
   },
   createPath: (path) => {
-    const directory = pathing.dirname(path);
-    // If the directory does not exist, create it
-    mkdirp.sync(directory);
+    return new Promise((resolve, reject) => {
+      const directory = pathing.dirname(path);
 
-    // Path flows straight through so it can be used to chain
-    return path;
+      // If the directory does not exist, create it
+      mkdirp(directory, (error) => {
+        // Path flows straight through so it can be used to chain
+        resolve(path);
+      });
+    });
   },
   formatTimeStamp: () => {
     const timeStamp = new Date();
     return `${timeStamp.getFullYear()}-${timeStamp.getMonth() + 1}-${timeStamp.getDate()}-${timeStamp.getHours()}-${timeStamp.getMinutes()}`;
   },
-  fileExists: (filePath) => {
+  fileExists: (filePath, throwOnError = false) => {
     return new Promise((resolve, reject) => {
       fs.access(filePath, fs.constants.F_OK | fs.constants.R_OK, (error) => {
-        if (error) reject(error);
-        resolve();
+        if (error) {
+          if (!throwOnError) return resolve(false);
+          return reject(error);
+        }
+
+        resolve(true);
       });
     });
   },
@@ -46,31 +53,52 @@ module.exports = {
     return config;
   },
   getDirectories: (path) => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       path = pathing.resolve(path);
-      module.exports.fileExists(path)
-        .then(() => {
-          fs.readdir(path, {
-              encoding: 'utf8',
-              withFileTypes: true
-            },
-            (error, items) => {
-              if (error) {
-                reject(`There was a problem reading directory - "${path}". ${error}`);
-              } else if (items.length === 0) {
-                reject(`No plugins in directory - "${path}", there should be at least one plugin to execute a query.`);
-              }
+      if (!await module.exports.fileExists(path)) {
+        return reject(`Directory does not exist or is inaccessible - "${path}"`);
+      }
 
-              resolve(
-                items.filter((item) =>
-                  item.isDirectory() && !(/\.git$/.test(item.name))).map((item) =>
-                  pathing.join(path, item.name))
-              );
-            }
-          );
-        }).catch((reason) => {
-          reject(`Directory does not exist - ${reason}`);
-        });
+      fs.readdir(path, {
+        encoding: 'utf8',
+        withFileTypes: true
+      }, (error, items) => {
+        if (error) {
+          return reject(`There was a problem reading directory - "${path}". ${error}`);
+        } else if (items.length === 0) {
+          return reject(`No plugins in directory - "${path}", there should be at least one plugin to execute a query.`);
+        }
+
+        resolve(
+          items.filter((item) =>
+            item.isDirectory() && !(/\.git$/.test(item.name))).map((item) =>
+            pathing.join(path, item.name))
+        );
+      });
+      // path = pathing.resolve(path);
+      // module.exports.fileExists(path)
+      //   .then(() => {
+      //     fs.readdir(path, {
+      //         encoding: 'utf8',
+      //         withFileTypes: true
+      //       },
+      //       (error, items) => {
+      //         if (error) {
+      //           return reject(`There was a problem reading directory - "${path}". ${error}`);
+      //         } else if (items.length === 0) {
+      //           return reject(`No plugins in directory - "${path}", there should be at least one plugin to execute a query.`);
+      //         }
+
+      //         resolve(
+      //           items.filter((item) =>
+      //             item.isDirectory() && !(/\.git$/.test(item.name))).map((item) =>
+      //             pathing.join(path, item.name))
+      //         );
+      //       }
+      //     );
+      //   }).catch((reason) => {
+      //     reject(`Directory does not exist - ${reason}`);
+      //   });
     });
   },
   getFileExtension: (path) => {
@@ -138,7 +166,7 @@ module.exports = {
           flag: 'r'
         },
         (err, content) => {
-          if (err || !content) reject(`There was a problem reading - ${path}. ${err}`);
+          if (err || !content) return reject(`There was a problem reading - ${path}. ${err}`);
           content = content.replace(/^\uFEFF/, ''); // Remove BOM from resulting string
           resolve(!parse ? content : JSON.parse(content));
         }
@@ -158,13 +186,13 @@ module.exports = {
     }
   },
   writeFile: (path, content, parse) => {
-    return new Promise((resolve, reject) => {
-      path = pathing.resolve(path);
+    return new Promise(async (resolve, reject) => {
+      path = await module.exports.createPath(pathing.resolve(path));
       content = !parse ? content : JSON.stringify(content, null, 2);
 
-      fs.writeFile(module.exports.createPath(path), content,
+      fs.writeFile(path, content,
         (error) => {
-          if (error) reject(`There was a problem writing file - ${path}. ${error}`);
+          if (error) return reject(`There was a problem writing file - ${path}. ${error}`);
           resolve();
         }
       );

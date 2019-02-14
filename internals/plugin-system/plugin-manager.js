@@ -5,27 +5,27 @@ const { getIndexPath } = require('./plugin-utils');
 const container = new Map();
 let hotReloading = true;
 
-const pluginFailed = (plugin, resolve) => {
-  return (reason) => {
-    log.warn(`Failed to create the "${plugin.name}" plugin. ${reason}`);
-    resolve();
-  }
-};
-
 module.exports = {
   addPlugin: (directory) => {
     // TODO: Ignore folders that start with underscore (disabled)
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const plugin = new PluginModel(directory);
-      fileExists(getIndexPath(directory)).then(() => {
-        plugin.initialize(hotReloading).then(() => {
-          container.set(plugin.id, plugin);
-          resolve();
-        }).catch(pluginFailed(plugin, resolve));
-      }).catch(pluginFailed(plugin, resolve));
+
+      try {
+        // If index is missing, an error will throw
+        await fileExists(getIndexPath(directory), true);
+        // Initialize the plugin, on success store in the plugin container
+        await plugin.initialize(hotReloading);
+        container.set(plugin.id, plugin);
+        resolve();
+      } catch(reason) {
+        // Fail singular plugin load
+        log.warn(`Failed to create the "${plugin.name}" plugin. ${reason}`);
+        resolve();
+      }
     });
   },
-  ensureMinimumPluginsLoaded: () => {
+  throwIfMinimumPluginsNotMet: () => {
     if (container.size === 0) {
       throw `There are no plugins loaded, you need at least one plugin to execute a query.`;
     }
@@ -44,6 +44,6 @@ module.exports = {
 
     plugin.dispose();
     container.delete(plugin.id);
-    module.exports.ensureMinimumPluginsLoaded();
+    module.exports.throwIfMinimumPluginsNotMet();
   }
 };

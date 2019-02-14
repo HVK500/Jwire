@@ -2,14 +2,10 @@ const pathing = require('path');
 const pluginManager = require('./plugin-manager');
 const { attachFileSystemWatcher, getDirectories, log } = require('../helpers');
 
-const loaderFailed = (reason) => {
-  log.error(reason);
-};
-
 const attachWatcher = (pluginDirectory) => {
   attachFileSystemWatcher(pluginDirectory, {
     ready: () => {
-      log.info('Plugin-system watching for changes');
+      log.info('Plugin-system watching for changes...');
     },
     error: (error) => {
       log.error(error);
@@ -23,20 +19,25 @@ const attachWatcher = (pluginDirectory) => {
       pluginManager.removePlugin(pathing.resolve(directory));
     }
   });
-}
+};
 
-module.exports = (pluginDirectory, disablePluginHotReload = false) => {
+module.exports = async (pluginDirectory, disablePluginHotReload = false) => {
   pluginManager.hotReload(disablePluginHotReload);
-  return getDirectories(pluginDirectory)
-    .then((pluginDirectories) => {
-      Promise.all(pluginDirectories.map((directory) => {
-        return pluginManager.addPlugin(directory);
-      })).then(() => {
-        pluginManager.ensureMinimumPluginsLoaded();
-      }).then(() => {
-        // Avoid watching the plugins directory if the system will be used once
-        if (disablePluginHotReload) return;
-        attachWatcher(pluginDirectory);
-      }).catch(loaderFailed);
-    }).catch(loaderFailed);
+
+  try {
+    const pluginDirectories = await getDirectories(pluginDirectory);
+
+    await Promise.all(pluginDirectories.map((directory) => {
+      return pluginManager.addPlugin(directory);
+    }));
+
+    // Throw an error if the plugin does not meet the minimum requirements
+    pluginManager.throwIfMinimumPluginsNotMet();
+
+    // Avoid watching the plugins directory if the system will be used once
+    if (disablePluginHotReload) return;
+    attachWatcher(pluginDirectory);
+  } catch(reason) {
+    log.error(reason);
+  }
 };

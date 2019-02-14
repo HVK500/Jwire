@@ -2,12 +2,12 @@ const nanoevents = require('nanoevents');
 const unbindAll = require('nanoevents/unbind-all');
 const eventsEmitter = new nanoevents();
 
-const unbindEventCollection = new WeakMap(); // { pluginId: function[] }
+const unbindEventCollection = new Map(); // { pluginId: function[] }
 
 module.exports = {
   clear: () => {
     unbindAll(eventsEmitter);
-    unbindEventCollection = new WeakMap();
+    unbindEventCollection = new Map();
   },
   emit: (eventId, ...args) => {
     eventsEmitter.emit(eventId, ...args);

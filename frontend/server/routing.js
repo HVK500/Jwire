@@ -2,7 +2,7 @@ const queryProcessor = require('../../internals/query-processor');
 const { loopObject, readFile, getFileExtension } = require('../../internals/helpers');
 
 module.exports = {
-  setupResourceRoutes: (resourceMap, api) => {
+  setupResourceRoutes: (api, resourceMap) => {
     loopObject(resourceMap, (type, assetCollection) => {
       loopObject(assetCollection, (id, path) => {
         readFile(path).then(content => {

@@ -7,7 +7,6 @@ let hotReloading = true;
 
 module.exports = {
   addPlugin: (directory) => {
-    // TODO: Ignore folders that start with underscore (disabled)
     return new Promise(async (resolve, reject) => {
       const plugin = new PluginModel(directory);
 

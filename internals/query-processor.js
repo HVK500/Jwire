@@ -4,7 +4,7 @@ const queryEngine = require('../internals/query-engine');
 const { getSystemConfig, objectBuilder, formatTimeStamp, writeFile } = require('../internals/helpers');
 const config = getSystemConfig();
 
-module.exports = async (keyPath, expectedValue, callback) => {
+module.exports = async (keyPath, expectedValue, returnCallback) => {
   expectedValue = !expectedValue ? '*' : expectedValue;
   const inputs = {
     keyPath: keyPath,
@@ -24,6 +24,9 @@ module.exports = async (keyPath, expectedValue, callback) => {
         true
       );
 
-      callback ? callback(queryResult) : null; // TODO: Address this callback chain
+      // Passes the query result back to the given callback
+      if (returnCallback) {
+        returnCallback(queryResult);
+      }
     });
 };

@@ -10,10 +10,11 @@ const indexFailed = (plugin, reason = '') => {
 const setConfig = (plugin) => {
   return new Promise(async (resolve, reject) => {
     const path = getConfigPath(plugin.parentFolder);
+    // Set default plugin config
     plugin.config = {
       enabled: true,
       path: '',
-      content: null
+      content: undefined
     };
 
     if (!await fileExists(path)) {
@@ -60,7 +61,8 @@ const setIndex = (plugin) => {
       unsubscribeEvents(plugin);
 
       try {
-        index(subscribeEvents(plugin), utils);
+        // Hand over the details the system contains to the plugin implementation
+        index(subscribeEvents(plugin), plugin.config.content, utils);
       } catch (error) {
         return reject(indexFailed(plugin, error));
       }
@@ -98,12 +100,15 @@ const unsubscribeEvents = (plugin) => {
   log.info(`Unsubscribed from all events for the "${plugin.name}" plugin.`);
 };
 
-const setupFileWatchers = (plugin, hotReload) => {
-  if (!hotReload) return;
+const setupFileWatchers = (plugin) => {
+  const handlePluginDisposal = (message) => {
+    log.error(message);
+    require('./plugin-manager')
+        .removePlugin(plugin.id);
+  };
 
-  const error = (error) => {
-    log.error(`Encountered an issue while watching the Index file in the "${plugin.name}" plugin, proceeding to dispose of plugin: ${error}`);
-    require('./plugin-manager').removePlugin(plugin.id);
+  const handleDisabledPlugin = (reason) => {
+    handlePluginDisposal(`Proceeding to dispose of the "${plugin.name}" plugin, as the ${reason}`);
   };
 
   // Create a watcher that looks for changes to the files index
@@ -111,7 +116,9 @@ const setupFileWatchers = (plugin, hotReload) => {
     ready: () => {
       log.info(`Watching for Index file changes in the "${plugin.name}" plugin.`);
     },
-    error: error,
+    error: (error) => {
+      handlePluginDisposal(`Encountered an issue while watching the Index file in the "${plugin.name}" plugin, proceeding to dispose of plugin: ${error}`);
+    },
     unlink: () => {
       log.info(`Detected the deletion of the Index file in the "${plugin.name}" plugin, proceeding to dispose of plugin.`);
       plugin.dispose();
@@ -129,28 +136,30 @@ const setupFileWatchers = (plugin, hotReload) => {
       log.info(`Watching for Config file changes in the "${plugin.name}" plugin.`);
     },
     error: (error) => {
-      log.error(`Encountered an issue while watching the Config file in the "${plugin.name}" plugin: ${error}`);
+      handlePluginDisposal(`Encountered an issue while watching the Config file in the "${plugin.name}" plugin, proceeding to dispose of plugin: ${error}`);
     },
     add: () => {
-      // pathing.resolve(directory)
-      // TODO: Config populate empty config object.
       log.info(`Detected the addition of the Config file in the "${plugin.name}" plugin, proceeding to load config.`);
+      setConfig(plugin)
+        .catch(handleDisabledPlugin);
     },
     unlink: () => {
-      // pathing.resolve(directory)
       log.info(`Detected the deletion of the Config file in the "${plugin.name}" plugin, proceeding to use default config.`);
-      // TODO: Config removed empty config object.
+      setConfig(plugin);
     },
     change: () => {
-      // pathing.resolve(directory)
       log.info(`Detected a change to the Config file in the "${plugin.name}" plugin, proceeding to reload config.`);
-      // TODO: Reload the file
+      setConfig(plugin)
+        .catch(handleDisabledPlugin);
     }
   });
 };
 
 const removeFileWatchers = (plugin) => {
-  removeFileSystemWatcher(plugin.index.watcher, plugin.config.watcher);
+  removeFileSystemWatcher(
+    plugin.index.watcher,
+    plugin.config.watcher
+  );
   log.info(`Stopped watching the files for the "${plugin.name}" plugin.`);
 };
 
@@ -159,13 +168,16 @@ module.exports = function (pluginDirectory) {
   this.id = generateGuid();
   setName(this);
 
-  this.initialize = (allowHotReload) => {
+  this.initialize = (hotReloadEnabled) => {
     return new Promise(async (resolve, reject) => {
       try {
         await setConfig(this);
         await setIndex(this);
 
-        setupFileWatchers(this, allowHotReload);
+        if (hotReloadEnabled) {
+          setupFileWatchers(this);
+        }
+
         log.info(`Successfully initialized the "${this.name}" plugin.`);
         resolve();
       } catch(reason) {
@@ -175,6 +187,7 @@ module.exports = function (pluginDirectory) {
   };
 
   this.dispose = () => {
+    log.info(`Disposing of the "${this.name}" plugin.`);
     unsubscribeEvents(this);
     removeFileWatchers(this);
   };

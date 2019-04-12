@@ -2,19 +2,21 @@
 
 ## What are plugins and what are they for?
 
-Plugins are an extendable interface that handle the structuring of a queries resulting data, this allows flexiblity for visual analysis of your queries' output.
+To put it simply, Jwire plugins are extendable interfaces that provide a means to handle structuring and/or filtering of a queries output data. This allows for flexiblity in visual analysis, as well as quick data extraction of very specific data within a very large json dataset.
 
 ## Plugin Structure
 
 ### Source
 
+The Jwire system requires each plugin to abide by a simple contract that require a plugin to register itself to the system and listen for any specific query focused data it has been made for. This is expanded on as the plugin structure is explained below.
+
 #### index.js
 
-Any plugin is required to contain a `index.js`, this file is the core of the plugin should look and function as follows.
+Any plugin is required to contain a `index.js`, as the name describes, this file is the core of the plugin.
 
 ```javascript
 // The plugin is passed a base to extend off of, this must be executed an returned as follows:
-module.exports = (pluginBase, config, utils) => {
+module.exports = (subscribe, config, utils) => {
   return pluginBase(
     // An id must be provided for each plugin, it can be anything as long as it is unique.
     'my-first-plugin',

@@ -3,10 +3,6 @@ const pathing = require('path');
 const { attachFileSystemWatcher, removeFileSystemWatcher, readFile, log, fileExists } = require('../helpers');
 const { getIndexPath, getConfigPath, utils, generateGuid } = require('./plugin-utils');
 
-const indexFailed = (plugin, reason = '') => {
-  return `The "${plugin.name}" plugin failed to read index because it has was not integrated correctly. ${reason}`;
-};
-
 const setConfig = (plugin) => {
   return new Promise(async (resolve, reject) => {
     const path = getConfigPath(plugin.parentFolder);
@@ -44,6 +40,10 @@ const setIndex = (plugin) => {
     plugin.index = plugin.index ? plugin.index : {};
     plugin.index.path = path;
     plugin.index.module = null;
+
+    const indexFailed = (plugin, reason = '') => {
+      return `The "${plugin.name}" plugin failed to read index because it has was not integrated correctly. ${reason}`;
+    };
 
     try {
       await fileExists(path, true);

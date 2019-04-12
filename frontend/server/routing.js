@@ -5,7 +5,7 @@ module.exports = {
   setupResourceRoutes: (api, resourceMap) => {
     loopObject(resourceMap, (type, assetCollection) => {
       loopObject(assetCollection, (id, path) => {
-        readFile(path).then(content => {
+        readFile(path).then((content) => {
           const fileExtension = getFileExtension(path);
 
           if (type !== 'pages') {         // other resource

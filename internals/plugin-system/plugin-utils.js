@@ -15,7 +15,10 @@ module.exports = {
   },
   utils: {
     log: create({
-      transports: [commonTransports.console(commonFormats.pluginConsole()), commonTransports.pluginFile(commonFormats.pluginFile())]
+      transports: [
+        commonTransports.console(commonFormats.pluginConsole()),
+        commonTransports.pluginFile(commonFormats.pluginFile())
+      ]
     }),
     loopObject: loopObject,
     objectBuilder: objectBuilder,

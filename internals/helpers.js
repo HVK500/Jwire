@@ -75,30 +75,6 @@ module.exports = {
             pathing.join(path, item.name))
         );
       });
-      // path = pathing.resolve(path);
-      // module.exports.fileExists(path)
-      //   .then(() => {
-      //     fs.readdir(path, {
-      //         encoding: 'utf8',
-      //         withFileTypes: true
-      //       },
-      //       (error, items) => {
-      //         if (error) {
-      //           return reject(`There was a problem reading directory - "${path}". ${error}`);
-      //         } else if (items.length === 0) {
-      //           return reject(`No plugins in directory - "${path}", there should be at least one plugin to execute a query.`);
-      //         }
-
-      //         resolve(
-      //           items.filter((item) =>
-      //             item.isDirectory() && !(/\.git$/.test(item.name))).map((item) =>
-      //             pathing.join(path, item.name))
-      //         );
-      //       }
-      //     );
-      //   }).catch((reason) => {
-      //     reject(`Directory does not exist - ${reason}`);
-      //   });
     });
   },
   getFileExtension: (path) => {

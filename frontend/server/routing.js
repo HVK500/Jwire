@@ -1,35 +1,36 @@
 const queryProcessor = require('../../internals/query-processor');
-const helpers = require('../../internals/helpers');
+const { loopObject, readFile, getFileExtension } = require('../../internals/helpers');
 
 module.exports = {
-  setupResourceRoutes: (resourceMap, api) => {
-    helpers.loopObject(resourceMap, (type, assetCollection) => {
-      helpers.loopObject(assetCollection, (id, path) => {
-        const content = helpers.readFile(path);
-        const fileExtension = helpers.getFileExtension(path);
+  setupResourceRoutes: (api, resourceMap) => {
+    loopObject(resourceMap, (type, assetCollection) => {
+      loopObject(assetCollection, (id, path) => {
+        readFile(path).then((content) => {
+          const fileExtension = getFileExtension(path);
 
-        if (type !== 'pages') {         // other resource
-          route = `/${type}/${id}`;
-        } else {                        // html resource
-          switch (id) {
-            case 'home':
-              route = '/';
-              break;
-            default:
-              route = `/${id}`;
+          if (type !== 'pages') {         // other resource
+            route = `/${type}/${id}`;
+          } else {                        // html resource
+            switch (id) {
+              case 'home':
+                route = '/';
+                break;
+              default:
+                route = `/${id}`;
+            }
           }
-        }
 
-        api.get(route, (request, response) => {
-          response.type(fileExtension);
-          response.send(content);
+          api.get(route, (request, response) => {
+            response.type(fileExtension);
+            response.send(content);
+          });
         });
       });
     });
   },
   setupApiRoutes: (api) => {
-    api.get('/query', (request, response) => {
-      queryProcessor(
+    api.get('/query', async (request, response) => {
+      await queryProcessor(
         request.param('keyPath'),
         request.param('expectedValue'),
         (output) => {

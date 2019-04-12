@@ -5,7 +5,7 @@ const routing = require('./routing');
 module.exports = (port) => {
   const api = express();
 
-  routing.setupResourceRoutes(require('../client/resource-map.json'), api);
+  routing.setupResourceRoutes(api, require('../client/resource-map.json'));
   routing.setupApiRoutes(api);
 
   api.listen(port, () => {

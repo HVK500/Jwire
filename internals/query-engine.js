@@ -1,41 +1,51 @@
-const jsonpath = require('jsonpath'); // https://goessner.net/articles/JsonPath/index.html#e2
-const pluginEvent = require('./plugin-system/utils').events;
-const helpers = require('./helpers');
+const events = require('./events');
+const jsonpath = require('jsonpath');
+const { tryParseValue, getFilePaths, log, readFile } = require('./helpers');
 
 const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallback) => {
-  const parsedInputValue = helpers.tryParseValue(inputs.expectedValue);
-  pluginEvent.emit('onBeforeProcessingPaths', sourceParentFolder, sourceFilePaths, inputs, parsedInputValue);
+  const parsedInputValue = tryParseValue(inputs.expectedValue);
+  events.emit('onBeforeProcessingPaths', sourceParentFolder, sourceFilePaths, inputs, parsedInputValue);
 
   sourceFilePaths.forEach((path, pathIndex) => {
-    const filePath = path.replace(sourceParentFolder, '~').replace('.json', '');
-    const fileContent = helpers.readFile(path, true);
-    const nodesCollection = jsonpath.nodes(
-      fileContent,
-      inputs.keyPath
-    );
+    const filePath = path
+      .replace(/\\/g, '/')
+      .replace(sourceParentFolder, '~')
+      .replace('.json', '');
 
-    // No result found in current file
-    if (nodesCollection.length === 0) {
-      pluginEvent.emit('onNodesNotFound', filePath, pathIndex, fileContent);
-    } else {
-      pluginEvent.emit('onBeforeProcessNodes', filePath, pathIndex, fileContent, nodesCollection);
-      nodesCollection.forEach((node, nodeIndex) => {
-        if (inputs.expectedValue !== '*' && ((!Array.isArray(node.value) && parsedInputValue !== node.value) || (Array.isArray(node.value) && !Array.isArray(parsedInputValue) && node.value.findIndex(value => value === inputs.expectedValue) === -1))) {
-          return;
+    readFile(path, true)
+      .then((fileContent) => {
+        const nodesCollection = jsonpath.nodes(fileContent, inputs.keyPath);
+
+        // No result found in current file
+        if (nodesCollection.length === 0) {
+          events.emit('onNodesNotFound', filePath, pathIndex, fileContent);
+        } else {
+          events.emit('onBeforeProcessNodes', filePath, pathIndex, fileContent, nodesCollection);
+
+          nodesCollection.forEach((node, nodeIndex) => {
+            if (inputs.expectedValue !== '*' && ((!Array.isArray(node.value) && parsedInputValue !== node.value) || (Array.isArray(node.value) && !Array.isArray(parsedInputValue) && node.value.findIndex(value => value === inputs.expectedValue) === -1))) {
+              return;
+            }
+
+            events.emit('onProcessNode', node, nodeIndex, nodesCollection);
+          });
         }
-        pluginEvent.emit('onProcessNode', node, nodeIndex, nodesCollection);
+
+        events.emit('onCompleteProcessingPath', filePath, pathIndex, fileContent, nodesCollection);
+      }).catch((error) => {
+        log.error(`Skipping file because - ${error}`);
       });
-    }
-    pluginEvent.emit('onCompleteProcessingPath', filePath, pathIndex, fileContent, nodesCollection);
   });
 
-  pluginEvent.emit('onReturnOutput', outputCallback);
+  events.emit('onReturnOutput', outputCallback);
 };
 
-module.exports = (sourceFolder, search, inputs, outputCallback) => {
+module.exports = async (sourceFolder, search, inputs, outputCallback) => {
+  const sourceFilePaths = await getFilePaths(sourceFolder, search);
+
   return processFiles(
     sourceFolder,
-    helpers.getFilePaths(sourceFolder, search),
+    sourceFilePaths,
     inputs,
     outputCallback
   );

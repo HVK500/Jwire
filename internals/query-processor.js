@@ -1,31 +1,32 @@
 const pathing = require('path');
 const pluginEvent = require('./plugin-system/utils').events;
-const pluginLoader = require('./plugin-system/loader');
 const queryEngine = require('../internals/query-engine');
-const helpers = require('../internals/helpers');
-const config = helpers.getConfig();
+const { getSystemConfig, objectBuilder, formatTimeStamp, writeFile } = require('../internals/helpers');
+const config = getSystemConfig();
 
-module.exports = (keyPath, expectedValue, callback) => {
+module.exports = async (keyPath, expectedValue, returnCallback) => {
   expectedValue = !expectedValue ? '*' : expectedValue;
   const inputs = {
     keyPath: keyPath,
     expectedValue: expectedValue
   };
 
-  pluginLoader(config.input.pluginFolder);
-
-  const resultBuilder = new helpers.objectBuilder();
+  const resultBuilder = new objectBuilder();
 
   pluginEvent.emit('onBeforeQueryStart', config.input.sourceFolder, inputs);
 
-  queryEngine(config.input.sourceFolder, config.input.searchCriteria, inputs, resultBuilder.add);
+  queryEngine(config.input.sourceFolder, config.input.searchCriteria, inputs, resultBuilder.add)
+    .then(() => {
+      const queryResult = resultBuilder.output();
+      writeFile(
+        pathing.join(config.output.resultFolder, `query-result-${formatTimeStamp()}.json`),
+        queryResult,
+        true
+      );
 
-  const queryResult = resultBuilder.output();
-  helpers.writeFile(
-    pathing.join(config.output.resultFolder, `query-result-${helpers.formatTimeStamp()}.json`),
-    queryResult,
-    true
-  );
-
-  callback ? callback(queryResult) : null;
+      // Passes the query result back to the given callback
+      if (returnCallback) {
+        returnCallback(queryResult);
+      }
+    });
 };

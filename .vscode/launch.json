@@ -14,9 +14,10 @@
         "debug"
       ],
       "runtimeArgs": [
-          "--nolazy"
+        "--nolazy"
       ],
-      "console": "internalConsole"
+      "console": "internalConsole",
+      "outputCapture": "std"
     }
   ]
 }

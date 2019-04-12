@@ -1,5 +1,13 @@
 {
-  "logging": true,
+  "logging": {
+    "console": {
+      "enabled": true
+    },
+    "file": {
+      "enabled": false,
+      "path": "./logs"
+    }
+  },
   "input": {
     "pluginFolder": "./plugins",
     "searchCriteria": "",

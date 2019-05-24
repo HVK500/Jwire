@@ -3,6 +3,7 @@ const readline = require('readline-sync');
 const config = require('./internals/helpers').getConfig();
 
 gulp.task('ui:query', () => {
+  console.log('Use `$.` as your root path, use `..` to deep search');
   console.log('Press ctrl + c to cancel');
   const port = Number(readline.question('Port: (Defaults to 3000) ') || 3000);
 
@@ -10,6 +11,7 @@ gulp.task('ui:query', () => {
 });
 
 gulp.task('query', () => {
+  console.log('Use `$.` as your root path, use `..` to deep search');
   console.log('Press ctrl + c to cancel');
   const keyPath = readline.question('Enter key path: ');
   const expectedValue = readline.question('Enter the expected value: (Defaults to *) ');

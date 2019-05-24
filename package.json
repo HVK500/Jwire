@@ -18,7 +18,7 @@
     "log-wrapper": "^0.1.2",
     "mkdirp": "^0.5.1",
     "nanoevents": "^1.0.8",
-    "opn": "^5.4.0",
+    "open": "^6.3.0",
     "readline-sync": "^1.4.9",
     "trash": "^4.3.0"
   }

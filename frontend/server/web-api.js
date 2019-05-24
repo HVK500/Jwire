@@ -1,5 +1,5 @@
 const express = require('express');
-const opn = require('opn');
+const open = require('open');
 const routing = require('./routing');
 
 module.exports = (port) => {
@@ -10,7 +10,7 @@ module.exports = (port) => {
 
   api.listen(port, () => {
     setTimeout(() => {
-      opn(`http://localhost:${port}/`);
+      open(`http://localhost:${port}/`);
     }, 1000);
   });
 };

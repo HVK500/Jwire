@@ -47,7 +47,6 @@ See the documentation on what a plugin is, how to create and wire up a plugin of
 
 ## Built With
 
-
 * [Node](https://nodejs.org/en/)
 * [Yarn](https://yarnpkg.com/en/)
   * [gulp](https://gulpjs.com/)

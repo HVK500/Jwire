@@ -92,9 +92,7 @@ This signal is fired right before any found paths get processed, these paths dep
 
 ```javascript
 onBeforeProcessingPaths: (
-  filePath,           // { string } - The folder absolute path configured to be queried.
-  pathIndex,          // { string } - 
-  fileContent         // { string } - 
+  sourceFilePaths     // { string } - 
 ) => { }
 ```
 

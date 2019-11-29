@@ -17,7 +17,7 @@
     "jsonpath": "^1.0.0",
     "mkdirp": "^0.5.1",
     "nanoevents": "^1.0.8",
-    "opn": "^5.4.0",
+    "open": "^6.3.0",
     "readline-sync": "^1.4.9",
     "tiny-glob": "^0.2.6",
     "trash": "^4.3.0",

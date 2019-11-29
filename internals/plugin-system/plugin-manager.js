@@ -26,7 +26,7 @@ module.exports = {
   },
   throwIfMinimumPluginsNotMet: () => {
     if (container.size === 0) {
-      throw `There are no plugins loaded, you need at least one plugin to execute a query.`;
+      throw 'There are no plugins loaded, you need at least one plugin to execute a query.';
     }
   },
   hotReload: (disable) => {

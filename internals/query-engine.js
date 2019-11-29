@@ -23,7 +23,10 @@ const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallbac
           events.emit('onBeforeProcessNodes', filePath, pathIndex, fileContent, nodesCollection);
 
           nodesCollection.forEach((node, nodeIndex) => {
-            if (inputs.expectedValue !== '*' && ((!Array.isArray(node.value) && parsedInputValue !== node.value) || (Array.isArray(node.value) && !Array.isArray(parsedInputValue) && node.value.findIndex(value => value === inputs.expectedValue) === -1))) {
+            if (inputs.expectedValue !== '*' && 
+            ((!Array.isArray(node.value) && parsedInputValue !== node.value) || 
+            (Array.isArray(node.value) && !Array.isArray(parsedInputValue) &&
+            node.value.findIndex(value => value === inputs.expectedValue) === -1))) {
               return;
             }
 

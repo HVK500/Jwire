@@ -1,6 +1,7 @@
 const gulp = require('gulp');
 const readline = require('readline-sync');
-const config = require('./internals/helpers').getConfig();
+const pluginLoader = require('./internals/plugin-system/plugin-loader');
+const config = require('./internals/helpers').getSystemConfig();
 
 gulp.task('ui:query', async () => {
   console.log('Use `$.` as your root path and use `..` to deep search');

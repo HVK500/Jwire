@@ -2,17 +2,16 @@ const events = require('./events');
 const jsonpath = require('jsonpath');
 const { tryParseValue, getFilePaths, log, readFile } = require('./helpers');
 
-const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallback) => {
+const processFiles = async (sourceParentFolder, sourceFilePaths, inputs, outputCallback) => {
   const parsedInputValue = tryParseValue(inputs.expectedValue);
   events.emit('onBeforeProcessingPaths', sourceParentFolder, sourceFilePaths, inputs, parsedInputValue);
 
-  sourceFilePaths.forEach((path, pathIndex) => {
-    const filePath = path
-      .replace(/\\/g, '/')
+  return Promise.all(sourceFilePaths.map((path, pathIndex) => {
+    const filePath = path.replace(/\\/g, '/')
       .replace(sourceParentFolder, '~')
       .replace('.json', '');
 
-    readFile(path, true)
+    return readFile(path, true)
       .then((fileContent) => {
         const nodesCollection = jsonpath.nodes(fileContent, inputs.keyPath);
 
@@ -23,10 +22,7 @@ const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallbac
           events.emit('onBeforeProcessNodes', filePath, pathIndex, fileContent, nodesCollection);
 
           nodesCollection.forEach((node, nodeIndex) => {
-            if (inputs.expectedValue !== '*' && 
-            ((!Array.isArray(node.value) && parsedInputValue !== node.value) || 
-            (Array.isArray(node.value) && !Array.isArray(parsedInputValue) &&
-            node.value.findIndex(value => value === inputs.expectedValue) === -1))) {
+            if (inputs.expectedValue !== '*' && ((!Array.isArray(node.value) && parsedInputValue !== node.value) || (Array.isArray(node.value) && !Array.isArray(parsedInputValue) && node.value.findIndex(value => value === inputs.expectedValue) === -1))) {
               return;
             }
 
@@ -38,9 +34,9 @@ const processFiles = (sourceParentFolder, sourceFilePaths, inputs, outputCallbac
       }).catch((error) => {
         log.error(`Skipping file because - ${error}`);
       });
+  })).then(() => {
+    events.emit('onReturnOutput', outputCallback);
   });
-
-  events.emit('onReturnOutput', outputCallback);
 };
 
 module.exports = async (sourceFolder, search, inputs, outputCallback) => {

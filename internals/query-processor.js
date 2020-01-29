@@ -1,5 +1,5 @@
 const pathing = require('path');
-const pluginEvent = require('./plugin-system/utils').events;
+const pluginEvent = require('./events');
 const queryEngine = require('../internals/query-engine');
 const { getSystemConfig, objectBuilder, formatTimeStamp, writeFile } = require('../internals/helpers');
 const config = getSystemConfig();
